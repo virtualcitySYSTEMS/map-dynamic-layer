@@ -1,5 +1,5 @@
 {
-  "name": "dynamic-layer",
+  "name": "@vcmap/dynamic-layer",
   "version": "1.0.0",
   "description": "",
   "type": "module",
@@ -46,15 +46,16 @@
   "prettier": "@vcsuite/eslint-config/prettier.js",
   "peerDependencies": {
     "@vcmap-cesium/engine": "^4.0.3",
-    "@vcmap/core": "^5.1.6",
-    "@vcmap/ui": "^5.1.8",
+    "@vcmap/core": "^5.2.1",
+    "@vcmap/ui": "^5.2.2",
     "ol": "^7.5.2",
     "vue": "~2.7.3",
     "vuetify": "~2.6.7"
   },
   "devDependencies": {
-    "@vcmap/plugin-cli": "^3.0.3",
-    "@vcsuite/eslint-config": "^3.0.6",
+    "@types/uuid": "^9.0.8",
+    "@vcmap/plugin-cli": "^3.1.2",
+    "@vcsuite/eslint-config": "^3.0.7",
     "@vitest/coverage-v8": "^1.5.0",
     "jest-canvas-mock": "^2.5.2",
     "jsdom": "^24.0.0",
@@ -63,5 +64,9 @@
     "vitest": "^1.5.0",
     "vue-tsc": "^2.0.13"
   },
-  "mapVersion": "^5.1"
+  "mapVersion": "^5.2",
+  "dependencies": {
+    "@vcsuite/logger": "^1.0.1",
+    "uuid": "^9.0.1"
+  }
 }

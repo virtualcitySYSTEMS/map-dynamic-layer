@@ -58,9 +58,7 @@ describe('VcsPlugin Interface test', () => {
   describe('internationalization', () => {
     it('may provide an i18n object and should provide at least en as fallback language', () => {
       if (pluginInstance?.i18n) {
-        expect(pluginInstance?.i18n)
-          .to.be.a('object')
-          .with.property('en');
+        expect(pluginInstance?.i18n).to.be.a('object').with.property('en');
       }
     });
     it('should use unscoped, camel-case plugin name as namespace for plugin specific i18n entries', () => {
@@ -82,8 +80,17 @@ describe('VcsPlugin Interface test', () => {
     it('may implement initialize', () => {
       if (pluginInstance?.initialize) {
         expect(pluginInstance.initialize).to.be.a('function');
+        expect(pluginInstance.initialize(new VcsUiApp(), undefined)).to.not
+          .throw;
       }
     });
+    it('may implement onVcsAppMounted', () => {
+      if (pluginInstance?.onVcsAppMounted) {
+        expect(pluginInstance.onVcsAppMounted).to.be.a('function');
+        expect(pluginInstance.onVcsAppMounted(new VcsUiApp())).to.not.throw;
+      }
+    });
+
     it('should implement destroy', () => {
       if (pluginInstance?.destroy) {
         expect(pluginInstance.destroy).to.be.a('function');

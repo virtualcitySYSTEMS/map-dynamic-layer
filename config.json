@@ -1,3 +1,4 @@
 {
-  "name": "dynamic-layer"
+  "name": "@vcmap/dynamic-layer",
+  "webdataDefaultUrl": "https://sgx.geodatenzentrum.de/wms_topplus_open"
 }

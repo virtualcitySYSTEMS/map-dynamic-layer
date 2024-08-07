@@ -1,0 +1,80 @@
+{
+  "dynamicLayer": {
+    "title": "Explore map data",
+    "contentTreeTitle": "Dynamically loaded layers",
+    "configEditorTitle": "Dynamic Layer Editor",
+    "webdata": {
+      "title": "Web Data",
+      "WMSLayer": "Web Map Service (WMS)",
+      "CesiumTilesetLayer": "Cesium 3D Tiles",
+      "TerrainLayer": "Terrain Layer",
+      "add": {
+        "title": "Add a new web data source to map by URL",
+        "type": "Select the web data source type",
+        "url": "Enter the web service URL",
+        "add": "Add source"
+      }
+    },
+    "catalogues": {
+      "title": "Catalogues"
+    },
+    "mydata": {
+      "title": "My Data"
+    },
+    "added": {
+      "title": "Added Data",
+      "goToWebdata": "Go to webdata sources",
+      "goToCatalogue": "Go to catalogue sources",
+      "goToLocal": "Go to local sources",
+      "selectToEdit": "Select a layer in the content tree on the left to edit its parameters"
+    },
+    "info": {
+      "title": "Information",
+      "description": "Description",
+      "accessConstraints": "Access constraints information",
+      "fees": "Fees",
+      "extent": "Extent",
+      "attributions": "Attributions",
+      "contact": "Contact",
+      "website": "Website",
+      "noInfo3DTiles": "No information to display for 3D Tiles layers.",
+      "noInfoTerrain": "No information to display for Terrain layers."
+    },
+    "parameters": {
+      "title": "Parameters",
+      "layerTitle": "Title",
+      "zIndex": "zIndex",
+      "screenSpaceError": "ScreenSpaceError",
+      "tilingSchema": "Tiling scheme",
+      "format": "Format",
+      "transparency": "Transparency",
+      "featureInfo": "Feature Info",
+      "style": "Style",
+      "description": "Description",
+      "requestVertexNormals": "Request Vertex Normals",
+      "requestWaterMask": "Request Water Mask"
+    },
+    "actions": {
+      "addSource": "Add a new source",
+      "deleteSource": "Delete source",
+      "addAll": "Add all nested layers",
+      "addToMap": "Add layer to map",
+      "filter": "Display only added layers",
+      "removeLayer": "Remove from map",
+      "edit": "Edit parameters",
+      "description": "View description",
+      "apply": "Apply",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "urlAlreadyAdded": "This URL has already been added!",
+      "invalidUrl": "URL is not valid!",
+      "noData": "No data has yet been added!"
+    },
+    "config": {
+      "defaultTab": "Default tab",
+      "defaultType": "Default type",
+      "defaultUrl": "Default URL"
+    }
+  }
+}

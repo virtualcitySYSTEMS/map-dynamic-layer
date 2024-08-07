@@ -1,0 +1,80 @@
+{
+  "dynamicLayer": {
+    "title": "Kartendaten erkunden",
+    "contentTreeTitle": "Dynamically loaded layers",
+    "configEditorTitle": "Dynamisch geladene Ebenen",
+    "webdata": {
+      "title": "Web-Daten",
+      "WMSLayer": "Web Map Service (WMS)",
+      "CesiumTilesetLayer": "Cesium 3D Tiles",
+      "TerrainLayer": "Terrain Layer",
+      "add": {
+        "title": "Hinzufügen einer neuen Webdatenquelle per URL",
+        "type": "Wählen Sie den Typ der Webdatenquelle",
+        "url": "Geben Sie die URL des Webdienstes ein",
+        "add": "Webdatenquelle hinzufügen"
+      }
+    },
+    "catalogues": {
+      "title": "Kataloge"
+    },
+    "mydata": {
+      "title": "Meine Daten"
+    },
+    "added": {
+      "title": "Hinzugefügte Daten",
+      "goToWebdata": "Webdatenquellen anzeigen",
+      "goToCatalogue": "Katalogquellen anzeigen",
+      "goToLocal": "Lokale Quellen anzeigen",
+      "selectToEdit": "Wählen Sie eine Ebene im Inhaltsbaum aus, um Einstellungen zu bearbeiten"
+    },
+    "info": {
+      "title": "Informationen",
+      "description": "Beschreibung",
+      "accessConstraints": "Informationen über Zugangsbeschränkungen",
+      "fees": "Gebühren",
+      "extent": "Ausdehnung",
+      "attributions": "Urheberrechte",
+      "contact": "Kontakt",
+      "website": "Website",
+      "noInfo3DTiles": "Keine anzuzeigenden Informationen für Ebenen vom Typ 3D Tiles.",
+      "noInfoTerrain": "Keine anzuzeigenden Informationen für Ebenen vom Typ Gelände."
+    },
+    "parameters": {
+      "title": "Parameter",
+      "layerTitle": "Titel",
+      "zIndex": "zIndex",
+      "screenSpaceError": "ScreenSpaceError",
+      "tilingSchema": "Kachelschema",
+      "format": "Format",
+      "transparency": "Transparenz",
+      "featureInfo": "Objektinformationen",
+      "style": "Darstellungsstil",
+      "description": "Beschreibung",
+      "requestVertexNormals": "Vertex-Normalen anfordern",
+      "requestWaterMask": "Wassermaske anfordern"
+    },
+    "actions": {
+      "addSource": "Neue Quelle hinzufügen",
+      "deleteSource": "Quelle löschen",
+      "addAll": "Alle verschachtelten Ebenen hinzufügen",
+      "addToMap": "Ebene zur Karte hinzufügen",
+      "filter": "Nur hinzugefügte Ebenen anzeigen",
+      "removeLayer": "Aus der Karte entfernen",
+      "edit": "Einstellungen bearbeiten",
+      "description": "Beschreibung anzeigen",
+      "apply": "Anwenden",
+      "cancel": "Abbrechen"
+    },
+    "errors": {
+      "urlAlreadyAdded": "Diese URL ist bereits hinzugefügt worden!",
+      "invalidUrl": "Diese URL ist nicht gültig!",
+      "noData": "Es wurden noch keine Daten hinzugefügt!"
+    },
+    "config": {
+      "defaultTab": "Standardregisterkarte",
+      "defaultType": "Standardtyp",
+      "defaultUrl": "Standard-URL"
+    }
+  }
+}

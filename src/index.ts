@@ -1,17 +1,76 @@
-import { VcsPlugin, VcsUiApp, PluginConfigEditor } from '@vcmap/ui';
+import {
+  createToggleAction,
+  ButtonLocation,
+  GroupContentTreeItem,
+  TableFeatureInfoView,
+  WindowSlot,
+  VcsPlugin,
+  VcsUiApp,
+  PluginConfigEditor,
+} from '@vcmap/ui';
+import { Component, Ref, reactive, ref } from 'vue';
 import { name, version, mapVersion } from '../package.json';
+import de from './i18n/de.json';
+import en from './i18n/en.json';
+import DynamicLayer, { dynamicLayerId } from './DynamicLayer.vue';
+import DynamicLayerConfigEditor from './DynamicLayerConfigEditor.vue';
+import { fetchSource } from './webdata/webdataApi.js';
+import { ActionsNames } from './webdata/webdataActionsHelper.js';
+import { CategoryType } from './constants.js';
+import { DataItem, WebdataTypes } from './webdata/webdataConstants.js';
+import { applyFnToItemAndChildren } from './webdata/webdataHelper.js';
 
-type PluginConfig = Record<never, never>;
-type PluginState = Record<never, never>;
+export type DynamicLayerConfig = {
+  defaultTab: CategoryType;
+  webdataDefaultType: WebdataTypes;
+  webdataDefaultUrl: string;
+};
+export function getDefaultOptions(): DynamicLayerConfig {
+  return {
+    defaultTab: CategoryType.WEBDATA,
+    webdataDefaultType: WebdataTypes.WMS,
+    webdataDefaultUrl: '',
+  };
+}
+type DynamicLayerState = {
+  [url: string]: { layerNames: Array<string>; type: WebdataTypes };
+};
+type DynamicLayerWebdata = {
+  /** The added webdata sources. */
+  added: Ref<Array<DataItem>>;
+  /** The selected webdata item, in the content tree. */
+  selected: Ref<DataItem | undefined>;
+  /** The opened webdata nodes, in the content tree. */
+  opened: Ref<Array<DataItem>>;
+};
+type DynamicLayerCatalogues = {
+  added: Ref<Array<never>>;
+};
 
-type MyPlugin = VcsPlugin<PluginConfig, PluginState>;
+export type DynamicLayerPlugin = VcsPlugin<
+  DynamicLayerConfig,
+  DynamicLayerState
+> & {
+  config: DynamicLayerConfig;
+  state: DynamicLayerState;
+  webdata: DynamicLayerWebdata;
+  catalogues: DynamicLayerCatalogues;
+};
 
 export default function plugin(
-  config: PluginConfig,
-  baseUrl: string,
-): MyPlugin {
-  // eslint-disable-next-line no-console
-  console.log(config, baseUrl);
+  options: DynamicLayerConfig,
+): DynamicLayerPlugin {
+  let app: VcsUiApp;
+  const listeners: Array<() => void> = [];
+  const config: DynamicLayerConfig = { ...getDefaultOptions(), ...options };
+  const state: DynamicLayerState = reactive({});
+  const webdata: DynamicLayerWebdata = {
+    added: ref([]),
+    selected: ref(),
+    opened: ref([]),
+  };
+  const catalogues = { added: ref([]) };
+
   return {
     get name(): string {
       return name;
@@ -22,57 +81,101 @@ export default function plugin(
     get mapVersion(): string {
       return mapVersion;
     },
-    initialize(vcsUiApp: VcsUiApp, state?: PluginState): Promise<void> {
-      // eslint-disable-next-line no-console
-      console.log(
-        'Called before loading the rest of the current context. Passed in the containing Vcs UI App ',
-        vcsUiApp,
-        state,
+    get config(): DynamicLayerConfig {
+      return config;
+    },
+    state,
+    webdata,
+    catalogues,
+    initialize(
+      this: DynamicLayerPlugin,
+      vcsUiApp: VcsUiApp,
+      pluginState?: DynamicLayerState,
+    ): Promise<void> {
+      app = vcsUiApp;
+      const { action, destroy } = createToggleAction(
+        {
+          name: 'dynamicLayerButton',
+          icon: 'mdi-database-search-outline',
+          title: 'dynamicLayer.title',
+        },
+        {
+          id: dynamicLayerId,
+          component: DynamicLayer,
+          state: {
+            headerTitle: 'dynamicLayer.title',
+            headerIcon: 'mdi-database-search-outline',
+          },
+          slot: WindowSlot.DETACHED,
+          position: {
+            left: '20%',
+            right: '20%',
+            top: '10%',
+            height: 600,
+            minWidth: 800,
+          },
+        },
+        vcsUiApp.windowManager,
+        name,
       );
+      listeners.push(destroy);
+
+      vcsUiApp.navbarManager.add(
+        { id: name, action },
+        name,
+        ButtonLocation.CONTENT,
+      );
+      vcsUiApp.contentTree.add(
+        new GroupContentTreeItem(
+          {
+            name,
+            title: 'dynamicLayer.contentTreeTitle',
+            initOpen: true,
+          },
+          vcsUiApp,
+        ),
+      );
+      vcsUiApp.featureInfo.add(new TableFeatureInfoView({ name }));
+
+      if (pluginState) {
+        Object.entries(pluginState).forEach(([url, value]) => {
+          const { type, layerNames } = value;
+          // eslint-disable-next-line no-void
+          void fetchSource(app, url, type).then((sourceItem) => {
+            applyFnToItemAndChildren((i: DataItem) => {
+              if (layerNames.includes(i.name)) {
+                // eslint-disable-next-line no-void
+                void i.actions
+                  .find((a) => a.name === ActionsNames.AddToMap)!
+                  .callback(new PointerEvent(''));
+              }
+            }, sourceItem);
+          });
+        });
+      }
+
       return Promise.resolve();
     },
-    onVcsAppMounted(vcsUiApp: VcsUiApp): void {
-      // eslint-disable-next-line no-console
-      console.log(
-        'Called when the root UI component is mounted and managers are ready to accept components',
-        vcsUiApp,
-      );
+    getState(): DynamicLayerState {
+      return state;
     },
-    /**
-     * should return all default values of the configuration
-     */
-    getDefaultOptions(): PluginConfig {
-      return {};
-    },
-    /**
-     * should return the plugin's serialization excluding all default values
-     */
-    toJSON(): PluginConfig {
-      // eslint-disable-next-line no-console
-      console.log('Called when serializing this plugin instance');
-      return {};
-    },
-    /**
-     * should return the plugins state
-     * @param {boolean} forUrl
-     * @returns {PluginState}
-     */
-    getState(forUrl?: boolean): PluginState {
-      // eslint-disable-next-line no-console
-      console.log('Called when collecting state, e.g. for create link', forUrl);
+    i18n: { en, de },
+    toJSON(): DynamicLayerConfig {
       return {
-        prop: '*',
+        defaultTab: config.defaultTab,
+        webdataDefaultType: config.webdataDefaultType,
+        webdataDefaultUrl: config.webdataDefaultUrl,
       };
     },
-    /**
-     * components for configuring the plugin and/ or custom items defined by the plugin
-     */
     getConfigEditors(): PluginConfigEditor[] {
-      return [];
+      return [
+        {
+          component: DynamicLayerConfigEditor as Component & { title: string },
+        },
+      ];
     },
     destroy(): void {
-      // eslint-disable-next-line no-console
-      console.log('hook to cleanup');
+      listeners.forEach((cb) => cb());
     },
   };
 }
