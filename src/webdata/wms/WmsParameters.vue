@@ -30,11 +30,13 @@
         />
       </v-col>
     </v-row>
+
+    <!-- FIXME: value not updated -->
     <v-row no-gutters v-if="parameters?.extent">
       <VcsExtent
         id="extent"
-        :value="parameters.extent"
-        @input="setExtent"
+        :model-value="parameters.extent"
+        @update:modelValue="setExtent"
         :first-cols="6"
       />
     </v-row>
@@ -66,7 +68,7 @@
           id="format"
           :items="parameters.availableFormats"
           v-model="parameters.parameters.FORMAT"
-          @change="updateFormat"
+          @update:modelValue="updateFormat"
         />
       </v-col>
     </v-row>
@@ -95,12 +97,7 @@
         }}</VcsLabel>
       </v-col>
       <v-col class="d-flex align-center">
-        <VcsCheckbox
-          id="featureInfo"
-          v-model="parameters.parameters.TRANSPARENT"
-          true-value="true"
-          false-value="false"
-        />
+        <VcsCheckbox id="featureInfo" v-model="enableFeatureInfo" />
       </v-col>
     </v-row>
     <v-row no-gutters v-if="parameters?.parameters?.STYLES" class="px-1">
@@ -127,7 +124,7 @@
           ?.abstract
       "
     >
-      <p class="px-2 pb-1" dense>
+      <p class="px-2 pb-1">
         {{ $t('dynamicLayer.parameters.description') }}:
         {{
           findStyle(parameters.availableStyles, parameters.parameters.STYLES)
@@ -136,7 +133,7 @@
       </p>
     </v-row>
 
-    <v-col class="d-flex justify-end gap-1" v-if="areParametersEdited">
+    <v-col class="d-flex justify-end gc-1" v-if="areParametersEdited">
       <VcsFormButton @click="cancel">{{
         $t('dynamicLayer.actions.cancel')
       }}</VcsFormButton>
@@ -171,7 +168,7 @@
     VcsUiApp,
   } from '@vcmap/ui';
   import { Extent, ExtentOptions, WMSLayer } from '@vcmap/core';
-  import { VCol, VRow } from 'vuetify/lib';
+  import { VCol, VRow } from 'vuetify/components';
   import { DynamicLayerPlugin } from 'src/index.js';
   import { WritableKeys } from '../../constants.js';
   import { DataItem, WebdataTypes } from '../webdataConstants.js';
@@ -183,7 +180,6 @@
     components: {
       VCol,
       VRow,
-
       VcsCheckbox,
       VcsExtent,
       VcsFormButton,
@@ -202,15 +198,15 @@
       const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
 
       const layer = app.layers.getByKey(props.item.name) as WMSLayer;
-      const rootItem = plugin.webdata.added.value.find(
-        (root) => root.url === props.item.url,
+      const rootItem = toRaw(
+        plugin.webdata.added.value.find((root) => root.url === props.item.url),
       ) as DataItem<WebdataTypes.WMS>;
 
       const parameters = ref({
         ...layer.toJSON(),
         tilingSchema: layer.tilingSchema,
         zIndex: layer.zIndex,
-        availableStyles: props.item.styles,
+        availableStyles: toRaw(props.item.styles),
         availableFormats: rootItem.formats,
         supportsTransparency: props.item?.supportsTransparency,
         queryable: props.item?.queryable,
@@ -219,9 +215,10 @@
         structuredClone(toRaw(parameters.value)),
       ) as Ref<WMSParameters>;
 
+      const enableFeatureInfo = ref(!!layer.featureProvider);
       const areParametersEdited = ref(false);
       watch(
-        parameters,
+        [parameters, enableFeatureInfo],
         (): void => {
           areParametersEdited.value = true;
         },
@@ -239,6 +236,7 @@
         parameters,
         areParametersEdited,
         findStyle,
+        enableFeatureInfo,
 
         styleText(style: { title: string }): string {
           return style.title;
@@ -246,8 +244,10 @@
         setExtent(value: ExtentOptions): void {
           parameters.value.extent = value;
         },
-        updateTransparency(v: string): void {
-          if (v) parameters.value.parameters.FORMAT = 'image/png';
+        updateTransparency(): void {
+          if (parameters.value.parameters.TRANSPARENT === 'true') {
+            parameters.value.parameters.FORMAT = 'image/png';
+          }
         },
         updateFormat(f: string): void {
           if (f !== 'image/png' && parameters.value.parameters?.TRANSPARENT) {
@@ -257,7 +257,8 @@
 
         cancel(): void {
           parameters.value = structuredClone(toRaw(initialParameters.value));
-          nextTick(() => {
+          // eslint-disable-next-line no-void
+          void nextTick(() => {
             areParametersEdited.value = false;
           });
         },
@@ -293,17 +294,25 @@
                     layer.properties.title = parameters.value.properties.title;
                     emit('rename');
                   } else if (parameters.value?.[key]?.[nestedKey]) {
-                    layer[key][nestedKey] = parameters.value[key][nestedKey];
+                    layer[key][nestedKey] = toRaw(
+                      parameters.value[key][nestedKey],
+                    );
                   }
                 }
               } else {
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
-                layer[key as keyof WritableKeys<WMSLayer>] =
+                layer[key as keyof WritableKeys] =
                   parameters.value[key as keyof WMSParameters];
               }
             }
           }
+          if (enableFeatureInfo.value) {
+            layer.properties.featureInfo = name;
+          } else {
+            delete layer.properties.featureInfo;
+          }
+
           layer.deactivate();
           await layer.activate();
           await layer.reload();

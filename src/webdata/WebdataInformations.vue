@@ -1,33 +1,32 @@
 <template>
-  <span>
-    <v-row no-gutters style="height: 492px">
-      <v-card flat class="w-full">
-        <v-card-title
-          class="d-flex font-weight-bold justify-center text-decoration-underline pa-0"
-        >
-          {{ item?.title ?? $t(`dynamicLayer.webdata.${item.type}`) }}
-        </v-card-title>
-        <v-card-subtitle class="py-2 d-flex justify-center font-italic">
-          <span class="text-truncate">{{ subtitle }}</span>
-        </v-card-subtitle>
-        <v-card flat class="w-full" :rounded="null">
-          <v-card-title class="base lighten-3 pa-1">
-            <v-icon color="primary" class="px-2">$vcsInfo</v-icon
-            >{{ $t('dynamicLayer.info.title') }}<v-spacer />
-          </v-card-title>
-          <span
-            :style="{
-              display: 'inline-block',
-              'max-height': '415px',
-              'overflow-y': 'auto',
-            }"
+  <span class="d-flex flex-column w-100 h-100">
+    <v-row no-gutters class="h-100 overflow-y-auto">
+      <v-card flat class="w-100 pb-1 overflow-y-auto">
+        <span>
+          <v-card-title
+            class="d-flex font-weight-bold justify-center text-decoration-underline pa-0"
           >
+            {{ item?.title ?? $t(`dynamicLayer.webdata.${item.type}`) }}
+          </v-card-title>
+          <v-card-subtitle class="d-flex justify-center font-italic">
+            <span class="text-truncate">{{ subtitle }}</span>
+          </v-card-subtitle>
+        </span>
+        <v-card flat class="w-100" :rounded="false">
+          <v-card-title class="bg-base-lighten-3 rounded pa-2">
+            <span class="d-flex align-center gc-1">
+              <v-icon color="primary" icon="$vcsInfo" />
+              {{ $t('dynamicLayer.info.title') }}
+            </span>
+          </v-card-title>
+          <span class="d-block">
             <slot name="informations"></slot>
           </span>
         </v-card>
       </v-card>
     </v-row>
     <ActionsButtons
+      class="w-100"
       :item="item"
       :selected-tab="CategoryType.WEBDATA"
       @switchTo="(c) => $emit('switchTo', c)"
@@ -43,8 +42,7 @@
     VCardTitle,
     VIcon,
     VRow,
-    VSpacer,
-  } from 'vuetify/lib';
+  } from 'vuetify/components';
   import { CategoryType } from '../constants.js';
   import { DataItem } from './webdataConstants.js';
   import ActionsButtons from './ActionsButtons.vue';
@@ -57,7 +55,6 @@
       VCardSubtitle,
       VIcon,
       VRow,
-      VSpacer,
       ActionsButtons,
     },
     props: {
@@ -69,8 +66,4 @@
     },
   });
 </script>
-<style lang="scss" scoped>
-  :deep(.v-card__title) {
-    border-radius: 4px;
-  }
-</style>
+<style lang="scss" scoped></style>

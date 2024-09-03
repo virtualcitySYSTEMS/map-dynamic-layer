@@ -1,18 +1,20 @@
 <template>
-  <v-row no-gutters style="height: 492px">
-    <v-card flat style="width: 100%">
+  <v-row no-gutters>
+    <v-card flat class="w-100">
       <v-card-title
         class="d-flex text-truncate font-weight-bold justify-center text-decoration-underline pa-0"
         >{{ item.name }}
       </v-card-title>
-      <v-card-subtitle class="py-2 d-flex justify-center font-italic">
+      <v-card-subtitle class="d-flex justify-center font-italic">
         <span class="text-truncate">{{ item.url }}</span>
       </v-card-subtitle>
-      <v-card-title class="base lighten-3 pa-1">
-        <v-icon color="primary" class="px-2">$vcsEdit</v-icon
+      <v-card-title class="bg-base-lighten-3 pa-2" style="border-radius: 4px">
+        <span class="px-2"> <v-icon color="primary" icon="$vcsEdit" /> </span
         >{{ $t('dynamicLayer.actions.edit') }}
       </v-card-title>
       <component
+        class="w-100 d-inline-block overflow-y-auto"
+        style="height: 412px"
         :is="getComponentName()"
         :item="item"
         @rename="$emit('rename')"
@@ -30,7 +32,7 @@
     VIcon,
     VRow,
     VCol,
-  } from 'vuetify/lib';
+  } from 'vuetify/components';
   import { DataItem, WebdataTypes } from './webdataConstants.js';
   import WmsParameters from './wms/WmsParameters.vue';
   import CesiumTilesetParameters from './cesiumTileset/CesiumTilesetParameters.vue';

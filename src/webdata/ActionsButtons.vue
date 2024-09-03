@@ -1,5 +1,5 @@
 <template>
-  <v-row no-gutters class="pt-1">
+  <v-row no-gutters>
     <v-col cols="3">
       <VcsFormButton
         v-if="
@@ -20,17 +20,13 @@
           getNonAddedChildrenLength(item)
         }})
       </VcsFormButton>
-      <span v-if="item?.isAddedToMap">
+      <span v-if="item?.isAddedToMap" class="d-flex gc-2">
         <VcsFormButton
           v-if="selectedTab !== CategoryType.ADDED"
           @click="$emit('switchTo', CategoryType.ADDED)"
-          class="pr-2"
           >{{ $t('dynamicLayer.actions.edit') }}
         </VcsFormButton>
-        <VcsFormButton
-          v-else
-          @click="$emit('switchTo', findType())"
-          class="pr-2"
+        <VcsFormButton v-else @click="$emit('switchTo', findType())"
           >{{ $t('dynamicLayer.actions.description') }}
         </VcsFormButton>
         <VcsFormButton
@@ -57,7 +53,7 @@
 <script lang="ts">
   import { computed, defineComponent, PropType } from 'vue';
   import { VcsFormButton } from '@vcmap/ui';
-  import { VCol, VRow } from 'vuetify/lib';
+  import { VCol, VRow } from 'vuetify/components';
   import { DataItem, WebdataTypes } from './webdataConstants.js';
   import {
     ActionsNames,
@@ -91,7 +87,7 @@
           if (Object.values(WebdataTypes).includes(props.item.type)) {
             return CategoryType.WEBDATA;
           }
-          return CategoryType.CATALOGUE;
+          return CategoryType.CATALOGUES;
         },
       };
     },

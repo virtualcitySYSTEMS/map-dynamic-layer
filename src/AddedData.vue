@@ -6,7 +6,7 @@
   >
     <v-row no-gutters>
       <v-col cols="12" class="py-1 d-flex justify-center">
-        <VcsLabel class="font-weight-bold"
+        <VcsLabel html-for="choice" class="font-weight-bold"
           >{{ $t('dynamicLayer.errors.noData') }}
         </VcsLabel>
       </v-col>
@@ -16,7 +16,7 @@
         }}</VcsFormButton>
       </v-col>
       <v-col cols="12" class="py-1 d-flex justify-center">
-        <VcsFormButton @click="$emit('switchTo', CategoryType.CATALOGUE)">{{
+        <VcsFormButton @click="$emit('switchTo', CategoryType.CATALOGUES)">{{
           $t('dynamicLayer.added.goToCatalogue')
         }}</VcsFormButton>
       </v-col>
@@ -30,17 +30,17 @@
   <v-row no-gutters v-else>
     <v-col cols="4">
       <VcsTreeview
-        class="d-block"
-        style="height: 530px; overflow-y: auto"
         :items="localItems"
-        :active.sync="arraySelected"
+        v-model:activated="arraySelected"
+        height="486px"
+        color="primary"
+        active-strategy="single-leaf"
         show-searchbar
+        mandatory
         activatable
-        hoverable
-        return-object
-        open-on-click
         open-all
-        dense
+        open-on-click
+        return-object
       />
     </v-col>
     <v-divider vertical style="z-index: 1" />
@@ -53,11 +53,13 @@
       </span>
       <span v-else-if="selectedDataItem">
         <WebdataParameters
+          class="parameters-slot"
           :item="selectedDataItem"
           @rename="rename"
           :key="selectedDataItem.name"
         />
         <ActionsButtons
+          class="align-end"
           :item="selectedDataItem"
           :selected-tab="CategoryType.ADDED"
           @reloadAddedContent="reloadContent"
@@ -70,8 +72,8 @@
 
 <script lang="ts">
   import { VcsFormButton, VcsLabel, VcsTreeview, VcsUiApp } from '@vcmap/ui';
-  import { Ref, computed, defineComponent, inject, ref } from 'vue';
-  import { VCol, VDivider, VRow } from 'vuetify/lib';
+  import { Ref, computed, defineComponent, inject, ref, toRaw } from 'vue';
+  import { VCol, VDivider, VRow } from 'vuetify/components';
   import { DynamicLayerPlugin } from 'src/index.js';
   import ActionsButtons from './webdata/ActionsButtons.vue';
   import { CategoryType } from './constants.js';
@@ -120,7 +122,6 @@
         });
       });
     });
-
     return contentTree;
   }
 
@@ -146,6 +147,7 @@
       const localItems = ref(createTreeviewContent(app, plugin));
       const selectedDataItem = ref();
       const selected: Ref<LocalItem | undefined> = ref();
+      const search = ref('');
 
       const arraySelected = computed({
         get() {
@@ -154,12 +156,10 @@
         set(value) {
           selected.value = value[0];
           if (value[0]) {
-            selectedDataItem.value = findDataItem(
-              plugin,
-              value[0].url,
-              value[0].name,
+            selectedDataItem.value = toRaw(
+              findDataItem(plugin, value[0].url, value[0].name),
             );
-            plugin.webdata.selected.value = selectedDataItem.value;
+            webdataSelected.value = toRaw(selectedDataItem.value);
           }
         },
       });
@@ -183,6 +183,7 @@
         WebdataTypes,
         localItems,
         selected,
+        search,
         arraySelected,
         selectedDataItem,
         reloadContent,

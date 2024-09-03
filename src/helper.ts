@@ -9,16 +9,16 @@ import { name } from '../package.json';
  * @returns All the supported data types for the passed CategoryTypes.
  */
 export function getAvailableWebdataTypes(
-  type: CategoryType.CATALOGUE | CategoryType.WEBDATA,
+  type: CategoryType.CATALOGUES | CategoryType.WEBDATA,
 ): Array<{
   value: WebdataTypes;
-  text: string;
+  title: string;
 }> {
   if (type === CategoryType.WEBDATA) {
     return Object.values(WebdataTypes).map((typeName) => {
       return {
         value: typeName,
-        text: `dynamicLayer.webdata.${typeName}`,
+        title: `dynamicLayer.webdata.${typeName}`,
       };
     });
   } else {

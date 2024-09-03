@@ -1,5 +1,6 @@
 import { TerrainLayer } from '@vcmap/core';
 import { VcsUiApp } from '@vcmap/ui';
+import { reactive } from 'vue';
 import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';
 import { DynamicLayerPlugin } from '../../index.js';
 import { DataItem, WebdataTypes } from '../webdataConstants.js';
@@ -16,20 +17,21 @@ export function addTerrainSource(app: VcsUiApp, url: string): DataItem {
   const parsedUrl = url.split('/layer.json')[0];
   const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
   const defaultName = getUniqueLayerName(plugin, 'TerrainLayer');
-  const TerrainDataItem: DataItem<WebdataTypes.TERRAIN> = {
+  const terrainDataItem: DataItem<WebdataTypes.TERRAIN> = reactive({
     actions: [],
-    children: [],
+    // XXX disable children because even empty, render the parents as expandable.
+    // children: [],
     name: defaultName,
     title: defaultName,
     type: WebdataTypes.TERRAIN,
     url: parsedUrl,
     isRootElement: true,
-  };
-  TerrainDataItem.actions.push(
-    ...getTreeviewDefaultActions(app, TerrainDataItem),
+  });
+  terrainDataItem.actions.push(
+    ...getTreeviewDefaultActions(app, terrainDataItem),
   );
-  plugin.webdata.added.value.push(TerrainDataItem);
-  return TerrainDataItem;
+  plugin.webdata.added.value.push(terrainDataItem);
+  return terrainDataItem;
 }
 
 /**

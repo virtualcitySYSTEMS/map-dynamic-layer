@@ -7,14 +7,18 @@ import { DataItem, WebdataTypes } from './webdataConstants.js';
  * @param itemName The name of the item to find.
  * @returns The found DataItem.
  */
-function findNestedItemByName(source: DataItem, itemName: string): DataItem {
+// XXX export only to use it because treeview return object is broken
+export function findNestedItemByName(
+  source: DataItem,
+  itemName: string,
+): DataItem {
   function find(items: Array<DataItem>): DataItem {
     return (
       items.find((child) => child.name === itemName) ??
-      find(items.flatMap((newItem) => newItem.children))
+      find(items.flatMap((newItem) => newItem?.children ?? []))
     );
   }
-  return find(source.children);
+  return find(source.children!);
 }
 
 /**
@@ -50,7 +54,7 @@ export function filterItemChildren(
     if (condition(item)) {
       result.push(item);
       return result;
-    } else if (item.children.length) {
+    } else if (item.children?.length) {
       const nodes = item.children.reduce(getNodes, []);
       if (nodes.length) {
         const newItem = { ...item };
@@ -73,9 +77,9 @@ export function applyFnToItemAndChildren(
   item: DataItem,
 ): void {
   function applyFn(items: Array<DataItem>): void {
-    items.forEach((child) => {
+    items?.forEach((child) => {
       fn(child);
-      child.children.forEach((c) => applyFn([c]));
+      child.children?.forEach((c) => applyFn([c]));
     });
   }
   applyFn([item]);

@@ -9,6 +9,7 @@ module.exports = {
   },
   rules: {
     'no-restricted-syntax': 'off',
+    'vue/no-v-model-argument': 'off',
   },
   overrides: [
     {

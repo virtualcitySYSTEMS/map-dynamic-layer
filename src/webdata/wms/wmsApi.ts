@@ -1,5 +1,6 @@
 import { Extent, WMSFeatureProvider, WMSLayer } from '@vcmap/core';
 import { VcsUiApp } from '@vcmap/ui';
+import { Reactive, reactive } from 'vue';
 import WMSCapabilities from 'ol/format/WMSCapabilities';
 import { DynamicLayerPlugin } from 'src';
 import { DataItem, WebdataTypes } from '../webdataConstants.js';
@@ -50,8 +51,8 @@ function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
     function findValue(propertyNames: Array<string>): unknown {
       let prop = childDifferent
         ? (layer as { [k: string]: unknown })
-        : (layer?.Layer?.[0] as { [k: string]: unknown }) ??
-          (layer as { [k: string]: unknown });
+        : ((layer?.Layer?.[0] as { [k: string]: unknown }) ??
+          (layer as { [k: string]: unknown }));
       propertyNames.forEach((n) => {
         prop = prop?.[n] as { [k: string]: unknown };
       });
@@ -101,13 +102,19 @@ function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
           legendUrl: s.LegendURL[0].OnlineResource,
         };
       }),
-      children: isChildDifferent(layer)
-        ? layer.Layer?.map((l) => getNestedLayers(l))
-        : [],
+      // XXX disable children when no child because even empty, render the parents as expandable.
+      // children: isChildDifferent(layer)
+      //   ? layer.Layer?.map((l) => getNestedLayers(l))
+      //   : [],
+      ...(layer?.Layer && {
+        children: isChildDifferent(layer)
+          ? layer.Layer?.map((l) => getNestedLayers(l))
+          : [],
+      }),
     };
   }
 
-  const content: DataItem<WebdataTypes.WMS> = {
+  const content: Reactive<DataItem<WebdataTypes.WMS>> = reactive({
     actions: [],
     name: url,
     title: service.Title,
@@ -135,10 +142,10 @@ function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
         service.ContactInformation?.ContactPersonPrimary?.ContactOrganization,
     },
     children: capability.Layer.Layer.map((l) => getNestedLayers(l)),
-  };
+  });
   function addActions(item: DataItem): void {
     item.actions.push(...getTreeviewDefaultActions(app, item));
-    item.children.forEach((child) => addActions(child));
+    item.children?.forEach((child) => addActions(child));
   }
   addActions(content);
   plugin.webdata.added.value.push(content);

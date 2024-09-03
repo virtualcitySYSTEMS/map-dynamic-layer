@@ -19,7 +19,9 @@ export type WebdataSupportedLayers =
 export type DataItem<T extends WebdataTypes = WebdataTypes> = {
   type: T;
   actions: Array<VcsAction>;
-  children: Array<DataItem<T>>;
+
+  // XXX make children optional because of https://github.com/vuetifyjs/vuetify/issues/19983
+  children?: Array<DataItem<T>>;
   name: string;
   title: string;
   url: string;

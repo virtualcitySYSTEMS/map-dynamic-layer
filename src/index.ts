@@ -8,7 +8,7 @@ import {
   VcsUiApp,
   PluginConfigEditor,
 } from '@vcmap/ui';
-import { Component, Ref, reactive, ref } from 'vue';
+import { Ref, reactive, ref } from 'vue';
 import { name, version, mapVersion } from '../package.json';
 import de from './i18n/de.json';
 import en from './i18n/en.json';
@@ -167,10 +167,10 @@ export default function plugin(
         webdataDefaultUrl: config.webdataDefaultUrl,
       };
     },
-    getConfigEditors(): PluginConfigEditor[] {
+    getConfigEditors(): PluginConfigEditor<DynamicLayerConfig>[] {
       return [
         {
-          component: DynamicLayerConfigEditor as Component & { title: string },
+          component: DynamicLayerConfigEditor,
         },
       ];
     },

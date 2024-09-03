@@ -5,6 +5,7 @@ import {
   VcsUiApp,
 } from '@vcmap/ui';
 import { Layer } from '@vcmap/core';
+import { reactive } from 'vue';
 import { DynamicLayerPlugin } from 'src';
 import { applyFnToItemAndChildren } from './webdataHelper.js';
 import { DataItem } from './webdataConstants.js';
@@ -32,12 +33,11 @@ export function getTreeviewDefaultActions(
 ): Array<VcsAction> {
   const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
 
-  const addLayerAction: VcsAction = {
+  const addLayerAction: VcsAction = reactive({
     icon: '$vcsPlus',
     name: ActionsNames.AddToMap,
     title: 'dynamicLayer.actions.addToMap',
     callback(): void {
-      plugin.webdata.selected.value = item;
       if (app.layers.hasKey(item.name)) {
         app.notifier.add({
           type: NotificationType.ERROR,
@@ -75,11 +75,12 @@ export function getTreeviewDefaultActions(
         );
         item.actions.push(removeAction);
         app.contentTree.add(contentTreeItem);
+        plugin.webdata.selected.value = item;
       }
     },
-  };
+  });
 
-  const addAllAction: VcsAction = {
+  const addAllAction: VcsAction = reactive({
     icon: 'mdi-map-plus',
     name: ActionsNames.AddAll,
     title: 'dynamicLayer.actions.addAll',
@@ -92,10 +93,10 @@ export function getTreeviewDefaultActions(
           ?.callback(this);
       }, item);
     },
-  };
+  });
 
   // TODO? add a vdialog to confirm deletion the source when layers are added?
-  const removeSourceAction: VcsAction = {
+  const removeSourceAction: VcsAction = reactive({
     icon: 'mdi-trash-can-outline',
     name: ActionsNames.DeleteSource,
     title: 'dynamicLayer.actions.deleteSource',
@@ -110,12 +111,12 @@ export function getTreeviewDefaultActions(
       const { value: webdata } = plugin.webdata.added;
       webdata.splice(webdata.indexOf(item), 1);
     },
-  };
+  });
 
   return [
     ...(item?.isRootElement ? [removeSourceAction] : []),
-    ...(item.children.some((c) => !c.isAddedToMap) ? [addAllAction] : []),
-    ...(!item?.isAddedToMap && !item.children.length ? [addLayerAction] : []),
+    ...(item.children?.some((c) => !c.isAddedToMap) ? [addAllAction] : []),
+    ...(!item?.isAddedToMap && !item.children?.length ? [addLayerAction] : []),
   ];
 }
 
@@ -135,7 +136,7 @@ export function getRemoveLayerAction(
 ): VcsAction {
   const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
   item.actions = getTreeviewDefaultActions(app, item);
-  const removeLayerAction: VcsAction = {
+  const removeLayerAction: VcsAction = reactive({
     name: ActionsNames.RemoveLayer,
     title: 'dynamicLayer.actions.removeLayer',
     icon: 'mdi-close',
@@ -154,7 +155,7 @@ export function getRemoveLayerAction(
       item.icon = undefined;
       item.actions = getTreeviewDefaultActions(app, item);
     },
-  };
+  });
   return removeLayerAction;
 }
 
@@ -164,16 +165,18 @@ export function getRemoveLayerAction(
  * @returns The number of nested childre not added to the Map.
  */
 export function getNonAddedChildrenLength(rootItem: DataItem): number {
-  let count = rootItem.children.filter((c) => !c.isAddedToMap).length;
+  let count = rootItem.children?.filter((c) => !c.isAddedToMap).length ?? 0;
   function countChildren(item: DataItem[]): void {
     item
-      .filter((child) => child.children.length)
+      .filter((child) => child.children?.length)
       .forEach((child) => {
         count =
-          count + child.children.filter((c) => !c.isAddedToMap).length - 1;
-        countChildren(child.children);
+          count +
+          (child.children?.filter((c) => !c.isAddedToMap).length ?? 0) -
+          1;
+        if (child?.children) countChildren(child.children);
       });
   }
-  countChildren(rootItem.children);
+  countChildren(rootItem.children!);
   return count;
 }

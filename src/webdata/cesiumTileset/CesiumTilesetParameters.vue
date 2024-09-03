@@ -29,7 +29,7 @@
         />
       </v-col>
     </v-row>
-    <v-col class="d-flex justify-end gap-1" v-if="areParametersEdited">
+    <v-col class="d-flex justify-end gc-1" v-if="areParametersEdited">
       <VcsFormButton @click="cancel">{{
         $t('dynamicLayer.actions.cancel')
       }}</VcsFormButton>
@@ -53,7 +53,7 @@
     toRaw,
     watch,
   } from 'vue';
-  import { VCol, VRow } from 'vuetify/lib';
+  import { VCol, VRow } from 'vuetify/components';
   import { VcsFormButton, VcsLabel, VcsTextField, VcsUiApp } from '@vcmap/ui';
   import { CesiumTilesetLayer } from '@vcmap/core';
   import { DataItem, WebdataTypes } from '../webdataConstants.js';
@@ -99,7 +99,8 @@
 
         cancel(): void {
           parameters.value = structuredClone(toRaw(initialParameters.value));
-          nextTick(() => {
+          // eslint-disable-next-line no-void
+          void nextTick(() => {
             areParametersEdited.value = false;
           });
         },

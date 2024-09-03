@@ -1,13 +1,13 @@
 <template>
-  <v-row no-gutters>
-    <v-col cols="4">
+  <v-row no-gutters class="h-100">
+    <v-col cols="4" class="h-100">
       <v-row no-gutters>
         <v-col cols="10">
           <VcsTreeviewSearchbar v-model="search" />
         </v-col>
         <v-col
           cols="2"
-          class="base lighten-3 d-flex align-center justify-end pr-3 gap-2"
+          class="bg-base-lighten-3 d-flex align-center justify-end pr-2 gc-2"
         >
           <VcsButton
             icon="mdi-filter"
@@ -24,22 +24,20 @@
         </v-col>
       </v-row>
       <VcsTreeview
-        class="d-block"
-        style="height: 486px; overflow-y: auto"
         :items="filterActive ? filter(added) : added"
-        item-key="name"
-        item-text="title"
-        :active.sync="arraySelected"
-        :open="opened"
+        v-model:activated="arraySelected"
+        v-model:opened="opened"
         :search="search"
+        active-strategy="single-independent"
+        color="primary"
+        height="486px"
         activatable
-        hoverable
+        mandatory
         return-object
-        dense
       />
     </v-col>
     <v-divider vertical />
-    <v-col cols="8" class="px-1">
+    <v-col cols="8" class="px-1" style="height: 530px">
       <component
         v-if="selected"
         :is="getComponentName()"
@@ -47,37 +45,39 @@
         @switchTo="$emit('switchTo', $event)"
       />
 
-      <v-row no-gutters v-else>
-        <v-col cols="8" offset="2" class="pt-4">
-          <v-card flat>
+      <v-row no-gutters v-else class="h-75">
+        <v-col cols="8" offset="2" class="d-flex align-center">
+          <v-card flat class="w-100">
             <v-card-title
-              class="font-weight-bold justify-center text-decoration-underline"
+              class="font-weight-bold d-flex justify-center text-decoration-underline"
               >{{ $t('dynamicLayer.webdata.add.title') }}
             </v-card-title>
-            <v-row no-gutters>
-              <v-col cols="12">
-                <VcsLabel>{{ $t('dynamicLayer.webdata.add.type') }}</VcsLabel>
-              </v-col>
-              <v-col cols="12">
-                <VcsSelect
-                  v-model="newSourceType"
-                  :items="availableTypes"
-                  return-object
-              /></v-col>
+            <v-row no-gutters class="w-100 pt-3">
+              <VcsLabel html-for="type">{{
+                $t('dynamicLayer.webdata.add.type')
+              }}</VcsLabel>
             </v-row>
-            <v-row no-gutters class="py-3">
-              <v-col cols="12">
-                <VcsLabel>{{ $t('dynamicLayer.webdata.add.url') }}</VcsLabel>
-              </v-col>
-              <v-col cols="12">
-                <VcsTextField
-                  placeholder="URL"
-                  v-model="newSourceUrl"
-                  @keyup.enter="addSource"
-                ></VcsTextField>
-              </v-col>
+            <v-row no-gutters class="w-100">
+              <VcsSelect
+                id="type"
+                v-model="newSourceType"
+                :items="availableTypes"
+              />
             </v-row>
-            <div class="d-flex gap-2 w-100 justify-end pt-1 pr-1">
+            <v-row no-gutters class="w-100 pt-3">
+              <VcsLabel html-for="url">{{
+                $t('dynamicLayer.webdata.add.url')
+              }}</VcsLabel>
+            </v-row>
+            <v-row no-gutters class="w-100">
+              <VcsTextField
+                id="url"
+                placeholder="URL"
+                v-model="newSourceUrl"
+                @keyup.enter="addSource"
+              />
+            </v-row>
+            <span class="d-flex justify-end pt-3">
               <VcsFormButton
                 variant="filled"
                 :loading="isNewSourceLoading"
@@ -87,7 +87,7 @@
                 @click="addSource"
                 >{{ $t('dynamicLayer.webdata.add.add') }}
               </VcsFormButton>
-            </div>
+            </span>
           </v-card>
         </v-col>
       </v-row>
@@ -96,7 +96,7 @@
 </template>
 
 <script lang="ts">
-  import { computed, defineComponent, inject, ref } from 'vue';
+  import { computed, defineComponent, inject, ref, shallowRef } from 'vue';
   import {
     NotificationType,
     VcsButton,
@@ -108,7 +108,14 @@
     VcsTreeviewSearchbar,
     VcsUiApp,
   } from '@vcmap/ui';
-  import { VCard, VCardTitle, VCol, VDivider, VRow } from 'vuetify/lib';
+  import {
+    VCard,
+    VCardTitle,
+    VCol,
+    VDivider,
+    VIcon,
+    VRow,
+  } from 'vuetify/components';
   import { fetchSource } from './webdataApi.js';
   import { DynamicLayerPlugin } from '../index.js';
   import { CategoryType } from '../constants.js';
@@ -127,6 +134,7 @@
       VCardTitle,
       VCol,
       VDivider,
+      VIcon,
       VRow,
       VcsButton,
       VcsFormButton,
@@ -154,12 +162,10 @@
 
       const search = ref('');
       const isNewSourceLoading = ref(false);
-      const availableTypes = getAvailableWebdataTypes(CategoryType.WEBDATA);
-      const newSourceType = ref(
-        availableTypes.find(
-          (t) => t.value === plugin.config.webdataDefaultType,
-        )!,
+      const availableTypes = shallowRef(
+        getAvailableWebdataTypes(CategoryType.WEBDATA),
       );
+      const newSourceType = ref(plugin.config.webdataDefaultType);
       const newSourceUrl = ref(plugin.config.webdataDefaultUrl);
       const filterActive = ref(false);
 
@@ -203,10 +209,7 @@
           filterActive.value = false;
           try {
             isNewSourceLoading.value = true;
-            const parsedUrl = parseUrl(
-              newSourceType.value.value,
-              newSourceUrl.value,
-            );
+            const parsedUrl = parseUrl(newSourceType.value, newSourceUrl.value);
             if (added.value.some((i) => i.url === parsedUrl)) {
               app.notifier.add({
                 type: NotificationType.ERROR,
@@ -220,7 +223,7 @@
             await fetchSource(
               app,
               newSourceUrl.value,
-              newSourceType.value.value,
+              newSourceType.value,
             ).then((item: DataItem) => {
               selected.value = item;
               opened.value = [item];
@@ -237,18 +240,4 @@
     },
   });
 </script>
-<style lang="scss" scoped>
-  :deep(.v-treeview-node__root) {
-    padding-right: 0 !important;
-    cursor: pointer;
-    .col-4 {
-      max-width: 64px;
-      flex: 0 0 64px;
-      gap: 8px;
-    }
-    .col-8 {
-      max-width: calc(100% - 54px);
-      flex: 0 0 calc(100% - 54px);
-    }
-  }
-</style>
+<style lang="scss" scoped></style>

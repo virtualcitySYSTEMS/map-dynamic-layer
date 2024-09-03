@@ -5,11 +5,11 @@
     @switchTo="(c) => $emit('switchTo', c)"
   >
     <template #informations>
-      <v-row no-gutters class="w-full" v-if="item?.keywordList?.length">
+      <v-row no-gutters class="w-100" v-if="item.keywordList?.length">
         <v-chip
           v-for="keyword in item.keywordList"
           label
-          x-small
+          size="x-small"
           color="primary"
           class="ma-1"
           :key="keyword"
@@ -17,9 +17,9 @@
         >
       </v-row>
 
-      <span no-gutters v-if="item?.description" class="w-full">
+      <span no-gutters v-if="item.description" class="w-100">
         <v-row no-gutters>
-          <VcsLabel class="font-weight-bold">{{
+          <VcsLabel html-for="description" class="font-weight-bold">{{
             $t('dynamicLayer.info.description')
           }}</VcsLabel>
         </v-row>
@@ -28,9 +28,9 @@
         </v-row>
       </span>
 
-      <span v-if="item?.accessConstraints" class="w-full">
+      <span v-if="item.accessConstraints" class="w-100">
         <v-row no-gutters>
-          <VcsLabel class="font-weight-bold">{{
+          <VcsLabel html-for="accessConstraints" class="font-weight-bold">{{
             $t('dynamicLayer.info.accessConstraints')
           }}</VcsLabel>
         </v-row>
@@ -39,9 +39,9 @@
         </v-row>
       </span>
 
-      <span v-if="item?.fees" class="w-full">
+      <span v-if="item.fees" class="w-100">
         <v-row no-gutters>
-          <VcsLabel class="font-weight-bold">{{
+          <VcsLabel html-for="fees" class="font-weight-bold">{{
             $t('dynamicLayer.info.fees')
           }}</VcsLabel>
         </v-row>
@@ -50,29 +50,29 @@
         </v-row>
       </span>
 
-      <span v-if="item?.extent" class="w-full">
+      <span v-if="item.extent" class="w-100">
         <v-row no-gutters>
-          <VcsLabel class="font-weight-bold">{{
+          <VcsLabel html-for="extent" class="font-weight-bold">{{
             $t('dynamicLayer.info.extent')
           }}</VcsLabel>
         </v-row>
         <v-row no-gutters>
-          <VcsExtent :value="item.extent.toJSON()" disabled />
+          <VcsExtent disabled :model-value="item.extent.toJSON()" />
         </v-row>
       </span>
 
-      <span v-if="checkAnyProperty(item?.attribution)" class="w-full">
+      <span v-if="checkAnyProperty(item.attribution)" class="w-100">
         <v-row no-gutters>
-          <VcsLabel class="font-weight-bold">{{
+          <VcsLabel html-for="attributions" class="font-weight-bold">{{
             $t('dynamicLayer.info.attributions')
           }}</VcsLabel>
         </v-row>
         <v-row no-gutters class="px-2">
           <div>
-            {{ item?.attribution?.title }}
+            {{ item.attribution?.title }}
             <br />
             <a
-              v-if="item?.attribution?.onlineResource"
+              v-if="item.attribution?.onlineResource"
               :href="item.attribution.onlineResource"
               target="_blank"
               >{{ $t('dynamicLayer.info.website') }}
@@ -81,13 +81,13 @@
         </v-row>
       </span>
 
-      <span v-if="checkAnyProperty(item?.contact)" class="w-full">
+      <span v-if="checkAnyProperty(item.contact)" class="w-100">
         <v-row no-gutters>
-          <VcsLabel class="font-weight-bold">{{
+          <VcsLabel html-for="contact" class="font-weight-bold">{{
             $t('dynamicLayer.info.contact')
           }}</VcsLabel>
         </v-row>
-        <v-row no-gutters class="px-2">
+        <v-row no-gutters class="px-2 pb-1">
           <p>
             {{ item.contact?.person
             }}{{
@@ -111,7 +111,7 @@
 <script lang="ts">
   import { PropType, defineComponent } from 'vue';
   import { VcsExtent, VcsLabel } from '@vcmap/ui';
-  import { VChip, VRow } from 'vuetify/lib';
+  import { VChip, VRow } from 'vuetify/components';
   import { CategoryType } from '../../constants.js';
   import { DataItem, WebdataTypes } from '../webdataConstants.js';
   import WebdataInformations from '../WebdataInformations.vue';

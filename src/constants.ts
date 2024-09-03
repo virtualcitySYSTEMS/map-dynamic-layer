@@ -1,7 +1,7 @@
 /** The different categories of data supported, represented by the plugin's tabs. */
 export enum CategoryType {
   WEBDATA = 'webdata',
-  CATALOGUE = 'catalogue',
+  CATALOGUES = 'catalogues',
   MYDATA = 'mydata',
   ADDED = 'added',
 }

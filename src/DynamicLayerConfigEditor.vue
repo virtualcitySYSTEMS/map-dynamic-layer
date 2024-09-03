@@ -7,34 +7,32 @@
     <v-container class="py-0 px-1">
       <v-row no-gutters>
         <v-col>
-          <VcsLabel html-for="defaultTab" required dense>
+          <VcsLabel html-for="defaultTab" required>
             {{ $t('dynamicLayer.config.defaultTab') }}
           </VcsLabel>
         </v-col>
         <v-col>
           <VcsSelect
             id="defaultTab"
-            dense
             :items="tabs"
             v-model="localConfig.defaultTab"
           />
         </v-col>
       </v-row>
       <v-row no-gutters class="pt-1">
-        <VcsLabel dense class="font-weight-bold">
+        <VcsLabel class="font-weight-bold">
           {{ $t('dynamicLayer.webdata.title') }}
         </VcsLabel>
       </v-row>
       <v-row no-gutters>
         <v-col>
-          <VcsLabel html-for="webdataType" required dense>
+          <VcsLabel html-for="webdataType" required>
             {{ $t('dynamicLayer.config.defaultType') }}
           </VcsLabel>
         </v-col>
         <v-col>
           <VcsSelect
             id="webdataType"
-            dense
             :items="webdataTypes"
             v-model="localConfig.webdataDefaultType"
           />
@@ -42,14 +40,13 @@
       </v-row>
       <v-row no-gutters>
         <v-col>
-          <VcsLabel html-for="webdataUrl" dense>
+          <VcsLabel html-for="webdataUrl">
             {{ $t('dynamicLayer.config.defaultUrl') }}
           </VcsLabel>
         </v-col>
         <v-col>
           <VcsTextField
             id="webdataUrl"
-            dense
             v-model="localConfig.webdataDefaultUrl"
             :rules="[isUrl]"
           />
@@ -60,18 +57,16 @@
 </template>
 
 <script lang="ts">
-  import { VContainer, VRow, VCol } from 'vuetify/lib';
+  import { VContainer, VRow, VCol } from 'vuetify/components';
   import {
     AbstractConfigEditor,
     VcsLabel,
     VcsTextField,
     VcsSelect,
   } from '@vcmap/ui';
-  import { defineComponent, PropType, Ref, ref } from 'vue';
-  import { getLogger } from '@vcsuite/logger';
+  import { defineComponent, PropType, ref } from 'vue';
   import { getDefaultOptions, DynamicLayerConfig } from './index.js';
   import { CategoryType } from './constants.js';
-  import { name } from '../package.json';
   import { getAvailableWebdataTypes } from './helper.js';
 
   export default defineComponent({
@@ -88,21 +83,18 @@
     },
     props: {
       getConfig: {
-        type: Function as PropType<() => Promise<DynamicLayerConfig>>,
+        type: Function as PropType<() => DynamicLayerConfig>,
         required: true,
       },
-      setConfig: { type: Function, required: true },
+      setConfig: {
+        type: Function as PropType<(config: object | undefined) => void>,
+        required: true,
+      },
     },
     setup(props) {
-      const localConfig: Ref<DynamicLayerConfig | undefined> = ref(undefined);
       const defaultOptions = getDefaultOptions();
-      props
-        .getConfig()
-        .then((config: DynamicLayerConfig) => {
-          localConfig.value = { ...defaultOptions, ...config };
-        })
-        .catch((err) => getLogger(name).error(err));
-
+      const config = props.getConfig();
+      const localConfig = ref({ ...defaultOptions, ...config });
       const tabs = ref(Object.values(CategoryType));
       const webdataTypes = ref(getAvailableWebdataTypes(CategoryType.WEBDATA));
 
@@ -117,8 +109,8 @@
             return 'dynamicLayer.errors.invalidUrl';
           }
         },
-        async apply(): Promise<void> {
-          await props.setConfig(localConfig.value);
+        apply(): void {
+          props.setConfig(localConfig.value);
         },
       };
     },

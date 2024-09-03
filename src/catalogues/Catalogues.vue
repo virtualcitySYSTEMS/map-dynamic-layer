@@ -42,7 +42,7 @@
     VDivider,
     VRow,
     VSpacer,
-  } from 'vuetify/lib';
+  } from 'vuetify/components';
   // import CataloguesOverview from './CataloguesOverview.vue';
   //   import { name } from '../../package.json';
 
@@ -68,7 +68,7 @@
       //   const app = inject<VcsUiApp>('vcsApp')!;
       //   const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
       // const { added, selected, opened } = plugin.catalogues;
-      const breadcrumbs = ref([{ text: 'Catalogues' }]);
+      const breadcrumbs = ref(['Catalogues']);
       const search = ref('');
       const filterActive = ref(false);
       return {

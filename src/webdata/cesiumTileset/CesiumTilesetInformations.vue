@@ -14,7 +14,7 @@
 
 <script lang="ts">
   import { PropType, defineComponent } from 'vue';
-  import { VRow } from 'vuetify/lib';
+  import { VRow } from 'vuetify/components';
   import { DataItem, WebdataTypes } from '../webdataConstants.js';
   import WebdataInformations from '../WebdataInformations.vue';
 

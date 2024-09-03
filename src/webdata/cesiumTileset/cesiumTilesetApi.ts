@@ -1,5 +1,6 @@
 import { CesiumTilesetLayer } from '@vcmap/core';
 import { VcsUiApp } from '@vcmap/ui';
+import { reactive } from 'vue';
 import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';
 import { DynamicLayerPlugin } from '../../index.js';
 import { DataItem, WebdataTypes } from '../webdataConstants.js';
@@ -15,15 +16,18 @@ import { getUniqueLayerName } from '../webdataHelper.js';
 export function addCesiumTilesetSource(app: VcsUiApp, url: string): DataItem {
   const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
   const defaultName = getUniqueLayerName(plugin, 'Cesium3DTileset');
-  const cesiumTilesetDataItem: DataItem<WebdataTypes.CESIUM_TILESET> = {
-    actions: [],
-    children: [],
-    name: defaultName,
-    title: defaultName,
-    type: WebdataTypes.CESIUM_TILESET,
-    url,
-    isRootElement: true,
-  };
+  const cesiumTilesetDataItem: DataItem<WebdataTypes.CESIUM_TILESET> = reactive(
+    {
+      actions: [],
+      // XXX disable children because even empty, render the parents as expandable.
+      // children: [],
+      name: defaultName,
+      title: defaultName,
+      type: WebdataTypes.CESIUM_TILESET,
+      url,
+      isRootElement: true,
+    },
+  );
   cesiumTilesetDataItem.actions.push(
     ...getTreeviewDefaultActions(app, cesiumTilesetDataItem),
   );
