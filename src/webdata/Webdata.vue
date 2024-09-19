@@ -24,6 +24,7 @@
         </v-col>
       </v-row>
       <VcsTreeview
+        class="treeview"
         :items="filterActive ? filter(added) : added"
         v-model:activated="arraySelected"
         v-model:opened="opened"
@@ -240,4 +241,13 @@
     },
   });
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+  .treeview {
+    :deep(.v-list-item) {
+      padding-inline-end: 8px;
+    }
+    :deep(.v-spacer) {
+      display: none !important;
+    }
+  }
+</style>

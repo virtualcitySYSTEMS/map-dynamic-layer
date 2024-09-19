@@ -30,6 +30,7 @@
   <v-row no-gutters v-else>
     <v-col cols="4">
       <VcsTreeview
+        class="treeview"
         :items="localItems"
         v-model:activated="arraySelected"
         height="486px"
@@ -196,4 +197,10 @@
     },
   });
 </script>
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+  .treeview {
+    :deep(.v-list-item) {
+      padding-inline-end: 0px;
+    }
+  }
+</style>
