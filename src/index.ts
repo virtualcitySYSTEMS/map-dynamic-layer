@@ -167,12 +167,8 @@ export default function plugin(
         webdataDefaultUrl: config.webdataDefaultUrl,
       };
     },
-    getConfigEditors(): PluginConfigEditor<DynamicLayerConfig>[] {
-      return [
-        {
-          component: DynamicLayerConfigEditor,
-        },
-      ];
+    getConfigEditors(): PluginConfigEditor<object>[] {
+      return [{ component: DynamicLayerConfigEditor }];
     },
     destroy(): void {
       listeners.forEach((cb) => cb());
