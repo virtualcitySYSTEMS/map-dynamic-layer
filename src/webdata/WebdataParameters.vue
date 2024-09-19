@@ -14,7 +14,7 @@
       </v-card-title>
       <component
         class="w-100 d-inline-block overflow-y-auto"
-        style="height: 412px"
+        style="height: 409px"
         :is="getComponentName()"
         :item="item"
         @rename="$emit('rename')"

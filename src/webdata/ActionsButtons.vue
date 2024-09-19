@@ -1,5 +1,6 @@
 <template>
   <v-row no-gutters>
+    <v-divider class="pb-1" />
     <v-col cols="3">
       <VcsFormButton
         v-if="
@@ -53,7 +54,7 @@
 <script lang="ts">
   import { computed, defineComponent, PropType } from 'vue';
   import { VcsFormButton } from '@vcmap/ui';
-  import { VCol, VRow } from 'vuetify/components';
+  import { VCol, VDivider, VRow } from 'vuetify/components';
   import { DataItem, WebdataTypes } from './webdataConstants.js';
   import {
     ActionsNames,
@@ -63,7 +64,7 @@
 
   export default defineComponent({
     name: 'ActionsButtons',
-    components: { VCol, VRow, VcsFormButton },
+    components: { VCol, VDivider, VRow, VcsFormButton },
     props: {
       item: { type: Object as PropType<DataItem>, required: true },
       selectedTab: { type: String as PropType<CategoryType>, required: true },
