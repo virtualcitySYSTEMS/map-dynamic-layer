@@ -1,6 +1,5 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
 import { defineConfig } from 'vite';
-// eslint-disable-next-line import/extensions
+
 import commonViteConfig from '@vcmap/ui/build/commonViteConfig.js';
 
 const configTest = defineConfig({

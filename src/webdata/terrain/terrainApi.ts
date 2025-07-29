@@ -1,28 +1,31 @@
 import { TerrainLayer } from '@vcmap/core';
-import { VcsUiApp } from '@vcmap/ui';
+import { type VcsUiApp } from '@vcmap/ui';
 import { reactive } from 'vue';
 import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';
-import { DynamicLayerPlugin } from '../../index.js';
-import { DataItem, WebdataTypes } from '../webdataConstants.js';
-import { name } from '../../../package.json';
-import { getUniqueLayerName } from '../webdataHelper.js';
+import type { DataItem } from '../webdataConstants.js';
+import { WebdataTypes } from '../webdataConstants.js';
+import { parseWebdataUrl } from '../webdataHelper.js';
 
 /**
  * Creates, adds to the plugin and returns the created DataItem.
  * @param app The VcsUiApp.
  * @param url The URL of the Terrain to add.
+ * @param uniqueName The unique name of the DataItem.
+ * @param title The title of the DataItem.
  * @returns The created DataItem.
  */
-export function addTerrainSource(app: VcsUiApp, url: string): DataItem {
-  const parsedUrl = url.split('/layer.json')[0];
-  const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
-  const defaultName = getUniqueLayerName(plugin, 'TerrainLayer');
+export function addTerrainSource(
+  app: VcsUiApp,
+  url: string,
+  uniqueName: string,
+  title: string,
+): DataItem {
+  const parsedUrl = parseWebdataUrl(url, WebdataTypes.TERRAIN);
   const terrainDataItem: DataItem<WebdataTypes.TERRAIN> = reactive({
     actions: [],
-    // XXX disable children because even empty, render the parents as expandable.
-    // children: [],
-    name: defaultName,
-    title: defaultName,
+    children: [],
+    name: uniqueName,
+    title,
     type: WebdataTypes.TERRAIN,
     url: parsedUrl,
     isRootElement: true,
@@ -30,7 +33,6 @@ export function addTerrainSource(app: VcsUiApp, url: string): DataItem {
   terrainDataItem.actions.push(
     ...getTreeviewDefaultActions(app, terrainDataItem),
   );
-  plugin.webdata.added.value.push(terrainDataItem);
   return terrainDataItem;
 }
 

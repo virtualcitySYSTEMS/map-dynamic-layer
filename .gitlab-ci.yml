@@ -1,5 +1,5 @@
 default:
-  image: gitlab.virtualcitysystems.de:5050/vcsuite/devops/gitlabrunner/node:18-bullseye
+  image: gitlab.virtualcitysystems.de:5050/vcsuite/devops/gitlabrunner/node:20-bullseye
 
 variables:
   GIT_CLONE_PATH: $CI_BUILDS_DIR/$CI_PROJECT_PATH_SLUG/$CI_COMMIT_REF_SLUG
@@ -175,5 +175,10 @@ publish:
     variables:
       - $PUBLISH
   script:
-    - npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
-    - npm publish --registry https://registry.npmjs.org --access public
+    - LEVEL=$([ $PUBLISH == "prerelease" ] && echo "prerelease" || echo "patch")
+    - npm config set '//npmregistry:4873/:_authToken' "${VERDACCIO_TOKEN}"
+    - NPM_TAG=$([ $PUBLISH == "prerelease" ] && echo "dev" || echo "latest")
+    - npm publish --registry http://npmregistry:4873 --tag $NPM_TAG
+    - VERSION=$(node -pe "require('./package.json').version")
+    - npm run bundle
+    - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file dist/@vcmap-dynamic-layer.tar.gz "${CI_API_V4_URL}/projects/317/packages/generic/vcmap-dynamic-layer/${VERSION}/vcmap-dynamic-layer-${VERSION}.tar.gz"'

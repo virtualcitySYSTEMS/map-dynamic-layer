@@ -1,24 +1,194 @@
 import {
   LayerContentTreeItem,
   NotificationType,
-  VcsAction,
-  VcsUiApp,
+  type VcsAction,
+  type VcsUiApp,
 } from '@vcmap/ui';
-import { Layer } from '@vcmap/core';
+import { getLogger } from '@vcsuite/logger';
 import { reactive } from 'vue';
-import { DynamicLayerPlugin } from 'src';
+import type { DynamicLayerPlugin } from '../index.js';
+import { createContentTreeName } from '../helper.js';
 import { applyFnToItemAndChildren } from './webdataHelper.js';
-import { DataItem } from './webdataConstants.js';
+import type { DataItem } from './webdataConstants.js';
 import { itemToLayer } from './webdataApi.js';
+import { CategoryType } from '../constants.js';
 import { name } from '../../package.json';
 
 /** Name of actions available for loaded elements. */
 export enum ActionsNames {
-  AddToMap = 'addToMap',
-  AddAll = 'addAll',
+  AddToMap = 'dynamicLayer.actions.layer.add',
+  AddAll = 'dynamicLayer.actions.layer.addAll',
   EditLayer = 'editLayer',
-  RemoveLayer = 'removeLayer',
-  DeleteSource = 'removeSource',
+  RemoveLayer = 'dynamicLayer.actions.layer.remove',
+  DeleteSource = 'dynamicLayer.actions.source.delete',
+}
+
+/**
+ * Counts the number of children not added to the Map. Deeply nested children are taken into account.
+ * @param rootItem The item for which to count children not added to the Map.
+ * @returns The number of nested childre not added to the Map.
+ */
+export function getNonAddedChildrenLength(rootItem: DataItem): number {
+  let count = rootItem.children.filter((c) => !c.isAddedToMap).length ?? 0;
+  function countChildren(item: DataItem[]): void {
+    item
+      .filter((child) => child.children.length)
+      .forEach((child) => {
+        count =
+          count +
+          (child.children.filter((c) => !c.isAddedToMap).length ?? 0) -
+          1;
+        if (child.children) {
+          countChildren(child.children);
+        }
+      });
+  }
+  countChildren(rootItem.children);
+  return count;
+}
+
+/**
+ * Creates a layer from the passed item and adds it to the Map.
+ * @param app The VcsUiApp.
+ * @param item The item from which to create and add a layer.
+ */
+export async function addLayerFromItem(
+  app: VcsUiApp,
+  item: DataItem,
+): Promise<void> {
+  if (app.layers.hasKey(item.name)) {
+    app.notifier.add({
+      type: NotificationType.ERROR,
+      message: `${app.vueI18n.t('dynamicLayer.common.theLayer')} ${item.title} ${app.vueI18n.t('dynamicLayer.errors.alreadyAdded')}`,
+    });
+  } else {
+    const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
+    try {
+      const layer = itemToLayer(item, plugin.layerIndex);
+      await layer.activate();
+      layer.properties.featureInfo = name;
+      app.layers.add(layer);
+
+      // Ensures if layer URL is a key in the plugin state
+      if (!plugin.state[layer.url]) {
+        plugin.state[layer.url] = { layerNames: [], type: item.type };
+      }
+      // Ensures item name is part of the plugin state
+      if (!plugin.state[layer.url].layerNames.includes(item.name)) {
+        plugin.state[layer.url].layerNames.push(item.name);
+      }
+      item.isAddedToMap = true;
+      const contentTreeName = createContentTreeName(layer.name);
+      const contentTreeItem = new LayerContentTreeItem(
+        {
+          name: contentTreeName,
+          layerName: layer.name,
+          title: item.title,
+        },
+        app,
+      );
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      item.actions = getTreeviewDefaultActions(app, item);
+      app.contentTree.add(contentTreeItem);
+      plugin.addedToMap.value.push(item);
+      plugin.addedSelected.value = item;
+
+      if (plugin.activeTab.value === CategoryType.WEBDATA) {
+        plugin.webdata.selected.value = item;
+      }
+
+      app.notifier.add({
+        type: NotificationType.SUCCESS,
+        message: `${app.vueI18n.t('dynamicLayer.common.theLayer')} ${item.title} ${app.vueI18n.t('dynamicLayer.info.successfullyAdded')}`,
+      });
+    } catch (error) {
+      app.notifier.add({
+        type: NotificationType.ERROR,
+        title: `${app.vueI18n.t('dynamicLayer.errors.addingLayer')}: ${item.title}`,
+        message: error as string,
+      });
+    }
+  }
+}
+
+/**
+ * Creates layers from the children of the passed item and adds them to the Map.
+ * @param app The VcsUiApp.
+ * @param item The item from which to add the nested items.
+ */
+export function addAllNestedLayersFromItem(
+  app: VcsUiApp,
+  item: DataItem,
+): void {
+  const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
+  item.children
+    .filter((child) => !child.isAddedToMap)
+    .forEach((child) => {
+      applyFnToItemAndChildren((i) => {
+        addLayerFromItem(app, i).catch((error: unknown) => {
+          getLogger(name).error(String(error));
+        });
+      }, child);
+    });
+  if (plugin.activeTab.value === CategoryType.WEBDATA) {
+    plugin.webdata.selected.value = item;
+  }
+}
+
+/**
+ * Removes the layer relative to the passed item.
+ * @param app The VcsUiApp.
+ * @param item The item from which has been created the layer to remove.
+ */
+export function removeLayer(app: VcsUiApp, item: DataItem): void {
+  const { state, addedToMap, addedSelected } = app.plugins.getByKey(
+    name,
+  ) as DynamicLayerPlugin;
+  if (addedSelected.value?.name === item.name) {
+    addedSelected.value = undefined;
+  }
+  const layer = app.layers.getByKey(item.name);
+  if (layer) {
+    app.layers.remove(layer);
+    layer.destroy();
+  }
+  const contentTreeName = createContentTreeName(item.name);
+  const contentTreeItem = app.contentTree.getByKey(contentTreeName);
+  if (contentTreeItem) {
+    app.contentTree.remove(contentTreeItem);
+  }
+  if (state[item.url]) {
+    if (state[item.url].layerNames.includes(item.name)) {
+      state[item.url].layerNames.splice(
+        state[item.url].layerNames.findIndex((n) => n === item.name),
+        1,
+      );
+    }
+    if (!state[item.url].layerNames.length) {
+      delete state[item.url];
+    }
+  }
+  const index = addedToMap.value.indexOf(item);
+  addedToMap.value.splice(index, 1);
+  item.isAddedToMap = false;
+  item.icon = undefined;
+  // eslint-disable-next-line @typescript-eslint/no-use-before-define
+  item.actions = getTreeviewDefaultActions(app, item);
+}
+
+/**
+ * Removes an added Webdata source, ensuring that all its children layers are removed too.
+ * @param app The VcsUiApp.
+ * @param item The item from which to add the nested items.
+ */
+export function removeSource(app: VcsUiApp, item: DataItem): void {
+  const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
+  plugin.webdata.selected.value = undefined;
+  applyFnToItemAndChildren((i: DataItem) => {
+    removeLayer(app, i);
+  }, item);
+  const { value: webdata } = plugin.webdata.added;
+  webdata.splice(webdata.indexOf(item), 1);
 }
 
 /**
@@ -31,152 +201,42 @@ export function getTreeviewDefaultActions(
   app: VcsUiApp,
   item: DataItem,
 ): Array<VcsAction> {
-  const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
-
-  const addLayerAction: VcsAction = reactive({
-    icon: '$vcsPlus',
-    name: ActionsNames.AddToMap,
-    title: 'dynamicLayer.actions.addToMap',
-    callback(): void {
-      if (app.layers.hasKey(item.name)) {
-        app.notifier.add({
-          type: NotificationType.ERROR,
-          message: `The layer ${item.title} has already been added!`,
-        });
-      } else {
-        const layer = itemToLayer(plugin, item);
-        app.layers.add(layer);
-        layer.activate().catch((e) => {
-          app.notifier.add({ type: NotificationType.ERROR, message: e });
-        });
-        if (!plugin.state?.[item.url]) {
-          plugin.state[item.url] = { layerNames: [], type: item.type };
-        }
-        if (!plugin.state?.[item.url]?.layerNames.includes(item.name)) {
-          plugin.state[item.url].layerNames.push(item.name);
-        }
-        item.isAddedToMap = true;
-        item.icon = 'mdi-map-check-outline';
-        const contentTreeItem = new LayerContentTreeItem(
-          {
-            // remove all points in the layer name, otherwise they don't show up
-            name: `${name}.${layer.name.replaceAll('.', '')}`,
-            layerName: layer.name,
-            title: item.title,
-          },
-          app,
-        );
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        const removeAction = getRemoveLayerAction(
-          app,
-          layer,
-          item,
-          contentTreeItem,
-        );
-        item.actions.push(removeAction);
-        app.contentTree.add(contentTreeItem);
-        plugin.webdata.selected.value = item;
-      }
-    },
-  });
-
-  const addAllAction: VcsAction = reactive({
-    icon: 'mdi-map-plus',
-    name: ActionsNames.AddAll,
-    title: 'dynamicLayer.actions.addAll',
-    callback(): void {
-      plugin.webdata.selected.value = item;
-      applyFnToItemAndChildren((i: DataItem) => {
-        // eslint-disable-next-line no-void
-        void i.actions
-          .find((a) => a.name === ActionsNames.AddToMap)
-          ?.callback(this);
-      }, item);
-    },
-  });
-
-  // TODO? add a vdialog to confirm deletion the source when layers are added?
-  const removeSourceAction: VcsAction = reactive({
-    icon: 'mdi-trash-can-outline',
-    name: ActionsNames.DeleteSource,
-    title: 'dynamicLayer.actions.deleteSource',
-    callback(): void {
-      plugin.webdata.selected.value = undefined;
-      applyFnToItemAndChildren((i: DataItem) => {
-        // eslint-disable-next-line no-void
-        void i.actions
-          .find((a) => a.name === ActionsNames.RemoveLayer)
-          ?.callback(this);
-      }, item);
-      const { value: webdata } = plugin.webdata.added;
-      webdata.splice(webdata.indexOf(item), 1);
-    },
-  });
-
-  return [
-    ...(item?.isRootElement ? [removeSourceAction] : []),
-    ...(item.children?.some((c) => !c.isAddedToMap) ? [addAllAction] : []),
-    ...(!item?.isAddedToMap && !item.children?.length ? [addLayerAction] : []),
-  ];
-}
-
-/**
- * Creates a VcsAction to remove a layer.
- * @param app The VcsUiApp.
- * @param layer The layer for which to get a removeAction.
- * @param item The DataItem used to create the layer.
- * @param contentTreeItem The ContentTree item of the layer.
- * @returns A VcsAction to remove the layer.
- */
-export function getRemoveLayerAction(
-  app: VcsUiApp,
-  layer: Layer,
-  item: DataItem,
-  contentTreeItem: LayerContentTreeItem,
-): VcsAction {
-  const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
-  item.actions = getTreeviewDefaultActions(app, item);
-  const removeLayerAction: VcsAction = reactive({
-    name: ActionsNames.RemoveLayer,
-    title: 'dynamicLayer.actions.removeLayer',
-    icon: 'mdi-close',
-    callback: () => {
-      app.layers.remove(layer);
-      layer.destroy();
-      app.contentTree.remove(contentTreeItem);
-      plugin.state[layer.url].layerNames.splice(
-        plugin.state[layer.url].layerNames.findIndex((n) => n === item.name),
-        1,
-      );
-      if (!plugin.state[layer.url].layerNames.length) {
-        delete plugin.state[layer.url];
-      }
-      item.isAddedToMap = false;
-      item.icon = undefined;
-      item.actions = getTreeviewDefaultActions(app, item);
-    },
-  });
-  return removeLayerAction;
-}
-
-/**
- * Counts the number of children not added to the Map. Deeply nested children are taken into account.
- * @param rootItem The item for which to count children not added to the Map.
- * @returns The number of nested childre not added to the Map.
- */
-export function getNonAddedChildrenLength(rootItem: DataItem): number {
-  let count = rootItem.children?.filter((c) => !c.isAddedToMap).length ?? 0;
-  function countChildren(item: DataItem[]): void {
-    item
-      .filter((child) => child.children?.length)
-      .forEach((child) => {
-        count =
-          count +
-          (child.children?.filter((c) => !c.isAddedToMap).length ?? 0) -
-          1;
-        if (child?.children) countChildren(child.children);
-      });
+  const actions: VcsAction[] = [];
+  if (item.isAddedToMap) {
+    actions.push(
+      reactive({
+        icon: 'mdi-map-check-outline',
+        name: ActionsNames.RemoveLayer,
+        title: ActionsNames.RemoveLayer,
+        callback: removeLayer.bind(null, app, item),
+      }),
+    );
   }
-  countChildren(rootItem.children!);
-  return count;
+  if (!item.children.length && !item.isAddedToMap) {
+    actions.push(
+      reactive({
+        icon: '$vcsPlus',
+        name: ActionsNames.AddToMap,
+        title: ActionsNames.AddToMap,
+        callback: addLayerFromItem.bind(null, app, item),
+      }),
+    );
+  }
+  if (item.children.some((c) => !c.isAddedToMap)) {
+    actions.push(
+      reactive({
+        name: ActionsNames.AddAll,
+        callback: addAllNestedLayersFromItem.bind(null, app, item),
+      }),
+    );
+  }
+  if (item.isRootElement) {
+    actions.push(
+      reactive({
+        name: ActionsNames.DeleteSource,
+        callback: removeSource.bind(null, app, item),
+      }),
+    );
+  }
+  return actions;
 }

@@ -3,78 +3,165 @@
     "title": "Explore map data",
     "contentTreeTitle": "Dynamically loaded layers",
     "configEditorTitle": "Dynamic Layer Editor",
+    "common": {
+      "description": "Description",
+      "filter": "Filter",
+      "format": "Format",
+      "layers": "layers",
+      "more": "more",
+      "show": "Show",
+      "theLayer": "The layer",
+      "title": "Title",
+      "type": "Type"
+    },
     "webdata": {
       "title": "Web Data",
-      "WMSLayer": "Web Map Service (WMS)",
-      "CesiumTilesetLayer": "Cesium 3D Tiles",
-      "TerrainLayer": "Terrain Layer",
+      "type": {
+        "WFSLayer": "Web Feature Service (WFS)",
+        "WMSLayer": "Web Map Service (WMS)",
+        "WMTSLayer": "Web Map Tile Service (WMTS)",
+        "CesiumTilesetLayer": "Cesium 3D Tiles",
+        "CzmlLayer": "CZML",
+        "GeoJSONLayer": "GeoJSON",
+        "PointCloudLayer": "Cesium Pointcloud",
+        "TerrainLayer": "Cesium Terrain"
+      },
       "add": {
         "title": "Add a new web data source to map by URL",
         "type": "Select the web data source type",
-        "url": "Enter the web service URL",
-        "add": "Add source"
+        "url": "Enter the web service URL"
       }
     },
     "catalogues": {
-      "title": "Catalogues"
-    },
-    "mydata": {
-      "title": "My Data"
+      "title": "Catalogues",
+      "searchAmong": "Search among",
+      "datasets": "datasets",
+      "noDescription": "No description available",
+      "type": {
+        "piveau": "Piveau",
+        "geonetwork": "GeoNetwork",
+        "idra": "Idra",
+        "nbsRegistry": "NBS Registry"
+      },
+      "nbsAddedToMap": "The selected NBS has been added to the map.",
+      "noDistributionAvailable": "No distribution available for this dataset.",
+      "chooseLayersToAdd": "Several layers are available at this address. Please add the desired layers by clicking on +.",
+      "selectedDistributionName": "The name of the selected distribution is:",
+      "defaultMarkdownDescription": "# How to use the catalogue section of this plugin?\n## Selection of a dataset:\nThere are several ways to find a specific dataset:\n- the search bar allows you to filter datasets by text;\n- the sort button allows you to choose the order in which datasets are displayed (by relevance, name, creation or modification date);\n- the filter button allows you to filter datasets according to the options provided by the catalogue (e.g. category, format, ...).\n\nOnce you've found the dataset you're looking for, select it from the list on the left to display its information.\n## Add a dataset distribution to the map:\nA dataset from a catalogue can conatain the following information: a list of keywords and a description (which can be collapsed if necessary), and a list of distributions. The distribution list shows all distributions related to a dataset. In the data table, each distribution can be expanded to obtain more details. This can include: an identifier, a description, and buttons for accessing and downloading the data. When a distribution is in a format that can be displayed on the map and is supported by the plugin, an “Add to map” button is displayed. The following data formats are supported and can be added to the Map:\n\n- [3D Tiles](https://www.ogc.org/standard/3dtiles/)\n- [Cesium PointCloud](https://cesium.com/platform/cesium-ion/3d-tiling-pipeline/point-clouds/)\n- [Cesium Terrain](https://cesium.com/learn/cesiumjs-learn/cesiumjs-terrain/)\n- [CZML](https://github.com/AnalyticalGraphicsInc/czml-writer/wiki/CZML-Guide)\n- [GeoJSON](https://www.ogc.org/standard/eo-geojson/)\n- [Web Feature Service (WFS)](https://www.ogc.org/standard/wfs/)\n- [Web Map Service (WMS)](https://www.ogc.org/standard/wms/)\n- [Web Map Tile Service (WMTS)](https://www.ogc.org/standard/wmts/)\n\nWhen a distribution is added to the map:\n- a notification confirms its addition;\n- it is listed in the  `Added Data`  tab where its parameters can be modified;\n- and a layer entry is added to the map content tree, to enable/disable it.\n\nIf the added data consists of sub-data (e.g. a WMS server with several layers), a new window opens to select the desired layer.",
+      "sortBy": {
+        "relevance": "Relevance",
+        "nameAsc": "Name ascensing",
+        "nameDesc": "Name descending",
+        "lastCreated": "Last created",
+        "lastModified": "Last modified",
+        "rating": "Rating",
+        "popularity": "Popularity",
+        "lowScaleFirst": "Low scale first",
+        "highScaleFirst": "High scale first"
+      }
     },
     "added": {
       "title": "Added Data",
-      "goToWebdata": "Go to webdata sources",
-      "goToCatalogue": "Go to catalogue sources",
-      "goToLocal": "Go to local sources",
-      "selectToEdit": "Select a layer in the content tree on the left to edit its parameters"
+      "selectToEdit": "Select a dataset in the left-hand column to modify its parameters.",
+      "actions": {
+        "selectAll": "Select all",
+        "clearSelection": "Clear selection",
+        "removeSelection": "Remove selection",
+        "removeSelectionTitle": "Remove selection from the map"
+      }
     },
     "info": {
       "title": "Information",
-      "description": "Description",
       "accessConstraints": "Access constraints information",
-      "fees": "Fees",
-      "extent": "Extent",
       "attributions": "Attributions",
+      "catalogueSource": "Catalogue source",
+      "created": "Created",
       "contact": "Contact",
+      "distributions": "Distributions",
+      "extent": "Extent",
+      "fees": "Fees",
+      "license": "License",
+      "modified": "Modified",
+      "publisher": "Publisher",
       "website": "Website",
-      "noInfo3DTiles": "No information to display for 3D Tiles layers.",
-      "noInfoTerrain": "No information to display for Terrain layers."
+      "noInfoFor": "No information to be displayed for",
+      "successfullyAdded": "has successfully been added! Edit its parameters from the Added Data tab."
     },
     "parameters": {
       "title": "Parameters",
-      "layerTitle": "Title",
-      "zIndex": "zIndex",
-      "screenSpaceError": "ScreenSpaceError",
-      "tilingSchema": "Tiling scheme",
-      "format": "Format",
-      "transparency": "Transparency",
-      "featureInfo": "Feature Info",
-      "style": "Style",
-      "description": "Description",
+      "epsg": "EPSG code",
+      "featureInfo": "Feature info",
+      "featureNS": "Feature Namespace",
+      "featurePrefix": "Feature Prefix",
+      "featureType": "Feature Type",
+      "opacity": "Opacity",
+      "numberLevelZeroTiles": "Number of LevelZeroTiles",
+      "pointSize": "Point size",
+      "proj4": "Proj4 definition",
       "requestVertexNormals": "Request Vertex Normals",
-      "requestWaterMask": "Request Water Mask"
+      "requestWaterMask": "Request Water Mask",
+      "screenSpaceError": "ScreenSpaceError",
+      "style": "Style",
+      "tileMatrixPrefix": "TileMatrixPrefix",
+      "tileMatrixSetID": "TileMatrixSetID",
+      "tileSize": "Tile size",
+      "tilingSchema": "Tiling scheme",
+      "transparency": "Background transparency",
+      "zoomLevels": "Zoom Levels",
+      "saveHint": "Use the buttons in the above header to save or discard your changes."
     },
     "actions": {
-      "addSource": "Add a new source",
-      "deleteSource": "Delete source",
-      "addAll": "Add all nested layers",
-      "addToMap": "Add layer to map",
-      "filter": "Display only added layers",
-      "removeLayer": "Remove from map",
-      "edit": "Edit parameters",
-      "description": "View description",
+      "add": "Add to Map",
       "apply": "Apply",
-      "cancel": "Cancel"
+      "access": "Access",
+      "cancel": "Cancel",
+      "collapse": "Collapse",
+      "download": "Download",
+      "edit": "Edit parameters",
+      "expand": "Expand",
+      "open": "Open",
+      "overview": "Overview",
+      "remove": "Remove",
+      "zoomToExtent": "Zoom to extent",
+      "filter": {
+        "showAddedOnly": "Show only added layers",
+        "reset": "Reset filter"
+      },
+      "layer": {
+        "add": "Add layer to map",
+        "addAll": "Add all nested layers",
+        "remove": "Remove from map"
+      },
+      "source": {
+        "add": "Add source",
+        "addNew": "Add a new source",
+        "delete": "Delete source"
+      }
     },
     "errors": {
-      "urlAlreadyAdded": "This URL has already been added!",
-      "invalidUrl": "URL is not valid!",
-      "noData": "No data has yet been added!"
+      "addingLayer": "An error occurred when adding the layer",
+      "alreadyAdded": "has already been added!",
+      "invalidUrl": "This URL is invalid!",
+      "fetchingCatalogue": "An error occurred while fetching the catalogue at",
+      "fetchingDatasetDetails": "An error occurred while fetching the dataset details",
+      "fetchingSource": "An error occurred while fetching the source.",
+      "layerCreation": "An error occurred while creating the layer.",
+      "noActiveCategory": "plugin configuration does not allow its use: no category is activated.",
+      "noData": "No data has yet been added!",
+      "unablePreloadCatalogue": "Unable to preload the catalogue at",
+      "urlAlreadyAdded": "This URL has already been added!"
     },
     "config": {
+      "general": "General settings",
       "defaultTab": "Default tab",
+      "enabledTabs": "Enabled tabs",
       "defaultType": "Default type",
-      "defaultUrl": "Default URL"
+      "defaultUrl": "Default URL",
+      "itemsPerPage": "Items per page",
+      "presets": "Presets catalogues",
+      "addPreset": "Add a catalogue",
+      "subtitle": "Subtitle",
+      "logo": "Logo"
     }
   }
 }

@@ -1,69 +1,64 @@
-<template>
-  <span class="d-flex flex-column w-100 h-100">
-    <v-row no-gutters class="h-100 overflow-y-auto">
-      <v-card flat class="w-100 pb-1 overflow-y-auto">
-        <span>
-          <v-card-title
-            class="d-flex font-weight-bold justify-center text-decoration-underline pa-0"
-          >
-            {{ item?.title ?? $t(`dynamicLayer.webdata.${item.type}`) }}
-          </v-card-title>
-          <v-card-subtitle class="d-flex justify-center font-italic">
-            <span class="text-truncate">{{ subtitle }}</span>
-          </v-card-subtitle>
-        </span>
-        <v-card flat class="w-100" :rounded="false">
-          <v-card-title class="bg-base-lighten-3 rounded pa-2">
-            <span class="d-flex align-center gc-1">
-              <v-icon color="primary" icon="$vcsInfo" />
-              {{ $t('dynamicLayer.info.title') }}
-            </span>
-          </v-card-title>
-          <span class="d-block">
-            <slot name="informations"></slot>
-          </span>
-        </v-card>
-      </v-card>
-    </v-row>
-    <ActionsButtons
-      class="w-100"
-      :item="item"
-      :selected-tab="CategoryType.WEBDATA"
-      @switchTo="(c) => $emit('switchTo', c)"
-    />
-  </span>
-</template>
+<script setup lang="ts">
+  import type { PropType } from 'vue';
+  import { defineProps } from 'vue';
+  import { VRow } from 'vuetify/components';
+  import { VcsFormSection } from '@vcmap/ui';
+  import type { DataItem } from './webdataConstants.js';
+  import WxsInformations from './WxsInformations.vue';
+  import { isWxsWebdataType } from './webdataHelper.js';
 
-<script lang="ts">
-  import { PropType, defineComponent } from 'vue';
-  import {
-    VCard,
-    VCardSubtitle,
-    VCardTitle,
-    VIcon,
-    VRow,
-  } from 'vuetify/components';
-  import { CategoryType } from '../constants.js';
-  import { DataItem } from './webdataConstants.js';
-  import ActionsButtons from './ActionsButtons.vue';
-
-  export default defineComponent({
-    name: 'WebdataInformations',
-    components: {
-      VCard,
-      VCardTitle,
-      VCardSubtitle,
-      VIcon,
-      VRow,
-      ActionsButtons,
+  defineProps({
+    item: { type: Object as PropType<DataItem>, required: true },
+    title: {
+      type: String,
+      default: (rawProps: { item: DataItem }) =>
+        `dynamicLayer.webdata.type.${rawProps.item.type}`,
     },
-    props: {
-      item: { type: Object as PropType<DataItem>, required: true },
-      subtitle: { type: String, required: true },
-    },
-    setup() {
-      return { CategoryType };
-    },
+    subtitle: { type: String, default: '' },
+    startOpen: { type: Boolean, default: false },
   });
 </script>
-<style lang="scss" scoped></style>
+
+<template>
+  <div class="h-100">
+    <v-row no-gutters class="title pt-1">{{ $t(title) }}</v-row>
+    <v-row no-gutters class="subtitle">{{ subtitle }} &nbsp;</v-row>
+    <VcsFormSection
+      heading="dynamicLayer.info.title"
+      expandable
+      :start-open="startOpen"
+      class="h-100 section"
+    >
+      <div class="h-100 overflow-y-auto pb-2">
+        <WxsInformations v-if="isWxsWebdataType(item)" :item="item" />
+        <span v-else class="pa-1">
+          {{ $t('dynamicLayer.info.noInfoFor') }} {{ item.type }}
+          {{ $t('dynamicLayer.common.layers') }}.
+        </span>
+      </div>
+    </VcsFormSection>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+  .title {
+    font-weight: bold;
+    text-decoration: underline;
+    display: flex;
+    justify-content: center;
+  }
+  .subtitle {
+    font-style: italic;
+    display: flex;
+    justify-content: center;
+    padding-bottom: 1px;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+  .section {
+    :deep(.section-content) {
+      height: calc(100% - (var(--v-vcs-font-size) * 2 + 62px)) !important;
+    }
+  }
+</style>

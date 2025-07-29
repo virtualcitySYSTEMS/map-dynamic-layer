@@ -1,28 +1,39 @@
 import { Extent, WMSFeatureProvider, WMSLayer } from '@vcmap/core';
-import { VcsUiApp } from '@vcmap/ui';
-import { Reactive, reactive } from 'vue';
+import { type VcsUiApp } from '@vcmap/ui';
+import type { Reactive } from 'vue';
+import { reactive, toRaw } from 'vue';
 import WMSCapabilities from 'ol/format/WMSCapabilities';
-import { DynamicLayerPlugin } from 'src';
-import { DataItem, WebdataTypes } from '../webdataConstants.js';
-import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';
 import {
-  WmsCapabilities,
-  WmsLayer,
-  wmsSupportedFeatureInfoType,
-} from './wmsConstants.js';
-import { name } from '../../../package.json';
+  parseWebdataUrl,
+  getCapabilitiesParameters,
+  validateExtent,
+} from '../webdataHelper.js';
+import type { DataItem } from '../webdataConstants.js';
+import { WebdataTypes } from '../webdataConstants.js';
+import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';
+import type { WmsCapabilities, WmsLayer } from './wmsConstants.js';
+import { wmsSupportedFeatureInfoType } from './wmsConstants.js';
 
 /**
- * Parses WMS Capabilities and returns the created (and added to the plugin) DataItem.
+ * Parses WMS Capabilities and returns the created DataItem.
  * @param app The VcsUiApp.
  * @param xml The WMS Capabilities.
  * @param url The fetched URL.
+ * @param optionalParameters The optional parameters from the URL.
  * @returns The parsed capabilities as DataItem.
  */
-function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
-  const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
+function parseWmsSource(
+  app: VcsUiApp,
+  xml: string,
+  url: string,
+  optionalParameters: Record<string, string>,
+): DataItem {
   const { Capability: capability, Service: service } =
     new WMSCapabilities().read(xml) as WmsCapabilities;
+
+  const featureInfoResponseType = wmsSupportedFeatureInfoType.find((t) =>
+    capability.Request.GetFeatureInfo.Format.includes(t),
+  );
 
   /**
    * Gets the nested layers of the passed WMSLayer as DataItem.
@@ -36,10 +47,15 @@ function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
      * @returns {boolean} Whether the nested layer is the same as the parent.
      */
     function isChildDifferent(l: WmsLayer): boolean {
-      if (l?.Layer) {
-        if (l.Layer?.length > 1) return true;
-        else return l.Name !== l.Layer[0].Name;
-      } else return false;
+      if (l.Layer) {
+        if (l.Layer?.length > 1) {
+          return true;
+        } else {
+          return l.Name !== l.Layer[0].Name;
+        }
+      } else {
+        return false;
+      }
     }
     const childDifferent = isChildDifferent(layer);
 
@@ -50,31 +66,28 @@ function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
      */
     function findValue(propertyNames: Array<string>): unknown {
       let prop = childDifferent
-        ? (layer as { [k: string]: unknown })
-        : ((layer?.Layer?.[0] as { [k: string]: unknown }) ??
-          (layer as { [k: string]: unknown }));
+        ? (layer as Record<string, unknown>)
+        : ((layer?.Layer?.[0] as Record<string, unknown>) ??
+          (layer as Record<string, unknown>));
       propertyNames.forEach((n) => {
-        prop = prop?.[n] as { [k: string]: unknown };
+        prop = prop?.[n] as Record<string, unknown>;
       });
       return prop as unknown;
     }
 
-    function validateExtent(extent: Extent): Extent {
-      if (!Extent.validateOptions(extent.toJSON())) {
-        return new Extent({
-          coordinates: Extent.WGS_84_EXTENT,
-          projection: { epsg: 4326 },
-        });
-      } else {
-        if (extent.extent[0] < -180) extent.extent[0] = -180;
-        if (extent.extent[1] < -90) extent.extent[1] = -90;
-        if (extent.extent[2] > 180) extent.extent[2] = 180;
-        if (extent.extent[3] > 90) extent.extent[3] = 90;
-        return extent;
-      }
-    }
-
+    const alreadyExists = !!app.layers.getByKey(layer.Name);
     return {
+      optionalParameters,
+      formats: capability.Request.GetMap.Format.filter(
+        (f) => f === 'image/png' || f === 'image/jpeg',
+      ),
+      featureInfoResponseType,
+      attributions: {
+        provider:
+          service.ContactInformation?.ContactPersonPrimary?.ContactOrganization,
+        url: service.OnlineResource,
+      },
+      isAddedToMap: alreadyExists,
       url,
       actions: [],
       type: WebdataTypes.WMS,
@@ -90,10 +103,6 @@ function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
       ),
       description: findValue(['Abstract']) as string,
       keywordList: findValue(['KeywordList']) as string[],
-      attribution: {
-        onlineResource: findValue(['Attribution', 'OnlineResource']) as string,
-        title: findValue(['Attribution', 'Title']) as string,
-      },
       styles: layer.Style?.map((s) => {
         return {
           value: s.Name,
@@ -102,15 +111,9 @@ function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
           legendUrl: s.LegendURL[0].OnlineResource,
         };
       }),
-      // XXX disable children when no child because even empty, render the parents as expandable.
-      // children: isChildDifferent(layer)
-      //   ? layer.Layer?.map((l) => getNestedLayers(l))
-      //   : [],
-      ...(layer?.Layer && {
-        children: isChildDifferent(layer)
-          ? layer.Layer?.map((l) => getNestedLayers(l))
-          : [],
-      }),
+      children: isChildDifferent(layer)
+        ? layer.Layer?.map((l) => getNestedLayers(l))
+        : [],
     };
   }
 
@@ -127,9 +130,7 @@ function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
     formats: capability.Request.GetMap.Format.filter(
       (f) => f === 'image/png' || f === 'image/jpeg',
     ),
-    featureInfoResponseType: wmsSupportedFeatureInfoType.find((t) =>
-      capability.Request.GetFeatureInfo.Format.includes(t),
-    ),
+    featureInfoResponseType,
     keywordList: service.KeywordList,
     onlineResource: service.OnlineResource,
     contact: {
@@ -145,54 +146,56 @@ function parseWmsSource(app: VcsUiApp, xml: string, url: string): DataItem {
   });
   function addActions(item: DataItem): void {
     item.actions.push(...getTreeviewDefaultActions(app, item));
-    item.children?.forEach((child) => addActions(child));
+    item.children?.forEach((child) => {
+      addActions(child);
+    });
   }
-  addActions(content);
-  plugin.webdata.added.value.push(content);
-  return content;
+  addActions(content as DataItem);
+  return content as DataItem;
 }
 
 /**
  * Fetches a WMS source with the correct parameters.
  * @param app The VcsUiApp.
  * @param rawUrl The user-entered URL.
- * @returns The created and added to the plugin DataItem of the source.
+ * @returns The created DataItem of the source.
  */
 export async function addWmsSource(
   app: VcsUiApp,
   rawUrl: string,
 ): Promise<DataItem> {
-  const serverUrl = rawUrl.split('?')[0];
-  const rawParameters = rawUrl.split('?')[1]?.split('&');
-  const parameters = rawParameters
-    ? Object.fromEntries(rawParameters.map((p) => p.split('=')))
-    : {};
-  parameters.SERVICE = 'WMS';
-  parameters.REQUEST = 'GetCapabilities';
-  const stringParameters = Object.entries(parameters)
-    .map((p) => p.join('='))
-    .join('&');
+  const serverUrl = parseWebdataUrl(rawUrl, WebdataTypes.WMS);
+  const { parameters, optionalParameters } = getCapabilitiesParameters(
+    rawUrl,
+    'WMS',
+  );
 
-  return fetch(`${serverUrl}?${stringParameters}`)
+  return fetch(`${serverUrl}?${parameters}`)
     .then((res) => res.text())
-    .then((xml) => parseWmsSource(app, xml, serverUrl));
+    .then((xml) => parseWmsSource(app, xml, serverUrl, optionalParameters));
 }
 
 /**
  * Creates a Layer from the passed DataItem.
  * @param item The DataItem to add to the map.
- * @param rootItem The root DataItem.
+ * @param zIndex The zIndex to use for the layer.
  * @returns The created layer.
  */
 export function itemToWmsLayer(
   item: DataItem<WebdataTypes.WMS>,
-  rootItem: DataItem<WebdataTypes.WMS>,
+  zIndex: number,
 ): WMSLayer {
-  const format = rootItem.formats!.includes('image/png')
+  const format = item.formats!.includes('image/png')
     ? 'image/png'
-    : rootItem.formats![0];
+    : item.formats![0];
   const style = item.styles?.[0];
-  const parameters = { format, styles: style?.value ?? '' };
+  const parameters = {
+    ...item.optionalParameters,
+    FORMAT: format,
+    STYLES: style?.value ?? '',
+    LAYERS: item.name,
+    TRANSPARENT: item.supportsTransparency ? 'TRUE' : 'FALSE',
+  };
   const layer = new WMSLayer({
     name: item.name,
     layers: item.name,
@@ -200,10 +203,8 @@ export function itemToWmsLayer(
     extent:
       item.extent?.toJSON() ??
       new Extent({ coordinates: Extent.WGS_84_EXTENT }).toJSON(),
-    ...(item.queryable && { featureInfo: { name } }),
     parameters,
     properties: {
-      ...(item.queryable && { featureInfo: name }),
       title: item.title,
       ...(style?.legendUrl && {
         legend: [
@@ -214,19 +215,16 @@ export function itemToWmsLayer(
           },
         ],
       }),
-      attributions: {
-        provider: rootItem.contact?.organization,
-        url: rootItem?.onlineResource,
-      },
+      attributions: toRaw(item.attributions),
     },
+    zIndex,
   });
-
   if (item.queryable) {
     layer.featureProvider = new WMSFeatureProvider(item.name, {
       url: item.url,
       parameters,
-      extent: item?.extent,
-      responseType: rootItem.featureInfoResponseType,
+      extent: item.extent,
+      responseType: item.featureInfoResponseType,
     });
   }
   return layer;

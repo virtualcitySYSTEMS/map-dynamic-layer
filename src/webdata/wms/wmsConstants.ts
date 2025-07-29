@@ -1,18 +1,6 @@
-import { Extent, WMSOptions } from '@vcmap/core';
+import type { WMSOptions } from '@vcmap/core';
 
-export const wmsParametersKeys = [
-  'zIndex',
-  'extent',
-  'style',
-  'styles',
-  'tilingSchema',
-  'formats',
-  'format',
-  'supportsTransparency',
-  'transparent',
-  'queryable',
-  'enableQuery',
-];
+/* eslint-disable @typescript-eslint/naming-convention */
 
 export type WMSAvailableStyle = {
   value: string;
@@ -25,7 +13,6 @@ export type WMSAvailableStyle = {
 export type WMSParameters = WMSOptions & {
   parameters: Record<string, string>;
   properties: Record<string, string>;
-  zIndex: number;
   tilingSchema: string;
   availableStyles?: Array<WMSAvailableStyle>;
   availableFormats?: Array<string>;
@@ -35,36 +22,16 @@ export type WMSParameters = WMSOptions & {
 
 /** The specific properties of a WMS webdata item. */
 export type WmsItem = {
-  extent?: Extent;
   queryable?: boolean;
   supportsTransparency?: boolean;
-
   styles?: Array<{
     value: string;
     title: string;
     abstract: string;
     legendUrl: string;
   }>;
-  accessConstraints?: string;
-  description?: string;
-  fees?: string;
   formats?: Array<string>;
-  keywordList?: Array<string>;
-  onlineResource?: string;
   featureInfoResponseType?: string;
-  attribution?: {
-    onlineResource?: string;
-    title?: string;
-  };
-  contact?: {
-    address?: string;
-    city?: string;
-    country?: string;
-    mail?: string;
-    person?: string;
-    position?: string;
-    organization?: string;
-  };
 };
 
 /** Raw layer style capabilities obtained from a WMS webserver. */
