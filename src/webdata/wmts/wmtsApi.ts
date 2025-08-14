@@ -41,7 +41,7 @@ function parseWmtsCapabilities(
    * @returns The created DataItem.
    */
   function createChildren(layer: WmtsLayer): DataItem<WebdataTypes.WMTS> {
-    const alreadyExists = !!app.layers.getByKey(layer.Identifier);
+    const alreadyExists = !!app.layers.hasKey(layer.Identifier);
     const extent = validateExtent(
       new Extent({
         coordinates: layer.WGS84BoundingBox?.length

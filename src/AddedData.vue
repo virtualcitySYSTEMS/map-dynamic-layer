@@ -60,6 +60,7 @@
   import { createContentTreeName } from './helper.js';
   import { removeLayer } from './webdata/webdataActionsHelper.js';
   import { name } from '../package.json';
+  import { CategoryType } from './constants.js';
 
   export default defineComponent({
     name: 'AddedData',
@@ -83,16 +84,6 @@
             name: item.name,
             title: item.title,
             group: item.type,
-            actions: [
-              reactive({
-                name: 'dynamicLayer.actions.layer.remove',
-                title: 'dynamicLayer.actions.layer.remove',
-                icon: 'mdi-close',
-                callback: (): void => {
-                  removeLayer(app, item);
-                },
-              }),
-            ],
           }),
         ),
       );
@@ -116,13 +107,20 @@
           addedSelected.value = undefined;
         }
       });
-      watch(addedSelected, (newValue) => {
-        if (newValue) {
+
+      function selectWebdataItem(): void {
+        if (addedSelected.value) {
           localSelected.value = [
-            localItems.value.find((item) => item.name === newValue.name),
+            localItems.value.find(
+              (item) => item.name === addedSelected.value!.name,
+            ),
           ];
-        } else {
-          localSelected.value = [];
+        }
+      }
+      selectWebdataItem();
+      watch(plugin.activeTab, (newValue) => {
+        if (newValue === CategoryType.ADDED) {
+          selectWebdataItem();
         }
       });
 
@@ -193,8 +191,11 @@
       overflow-y: auto;
       align-content: flex-start;
     }
-    :deep(.v-expansion-panel) {
-      padding-left: 0px !important;
+    :deep(.v-list-item) {
+      padding-left: 24px !important;
+      &.v-list-item--active {
+        padding-left: 20px !important;
+      }
     }
     :deep(.v-spacer) {
       display: none !important;

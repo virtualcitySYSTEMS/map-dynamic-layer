@@ -56,6 +56,37 @@ export function applyFnToItemAndChildren(
 }
 
 /**
+ * Gets the parent item of the passed item.
+ * @remarks Works by searching an item with the item's url as name.
+ * @param app The VcsUiApp.
+ * @param item The item for which to find the parent.
+ * @returns The parent item, or undefined if not found.
+ */
+export function getParentItem(
+  app: VcsUiApp,
+  item: DataItem,
+): DataItem | undefined {
+  const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
+  let foundParent: DataItem | undefined;
+
+  plugin.webdata.added.value.forEach((rootItem) => {
+    if (foundParent) {
+      return;
+    }
+    applyFnToItemAndChildren((currentItem) => {
+      if (foundParent) {
+        return;
+      }
+      if (currentItem.children.find((child) => child.name === item.name)) {
+        foundParent = currentItem;
+      }
+    }, rootItem);
+  });
+
+  return foundParent;
+}
+
+/**
  * Finds an unique name for a root DataItem.
  * @param app The VcsUIApp.
  * @param layername The root of the layer name.

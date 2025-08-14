@@ -62,7 +62,7 @@ async function parseWfsCapabilities(
   ): Array<DataItem<WebdataTypes.WFS>> {
     const children: Array<DataItem<WebdataTypes.WFS>> = [];
     features.forEach((f) => {
-      const alreadyExists = !!app.layers.getByKey(f.Name);
+      const alreadyExists = !!app.layers.hasKey(f.Name);
       const extent = validateExtent(
         new Extent({
           coordinates:
@@ -83,7 +83,6 @@ async function parseWfsCapabilities(
         name: f.Name,
         title: f.Title,
         attributions: { provider: capabilities.ServiceProvider.ProviderName },
-        isAddedToMap: alreadyExists,
         type: WebdataTypes.WFS,
         url,
         namespace,
@@ -93,6 +92,7 @@ async function parseWfsCapabilities(
         extent,
       };
       child.actions.push(...getTreeviewDefaultActions(app, child));
+      child.isAddedToMap = alreadyExists && !child.children.length;
       children.push(child);
     });
     return children;

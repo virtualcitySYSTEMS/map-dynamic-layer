@@ -8,7 +8,7 @@ import { getLogger } from '@vcsuite/logger';
 import { reactive } from 'vue';
 import type { DynamicLayerPlugin } from '../index.js';
 import { createContentTreeName } from '../helper.js';
-import { applyFnToItemAndChildren } from './webdataHelper.js';
+import { applyFnToItemAndChildren, getParentItem } from './webdataHelper.js';
 import type { DataItem } from './webdataConstants.js';
 import { itemToLayer } from './webdataApi.js';
 import { CategoryType } from '../constants.js';
@@ -18,6 +18,7 @@ import { name } from '../../package.json';
 export enum ActionsNames {
   AddToMap = 'dynamicLayer.actions.layer.add',
   AddAll = 'dynamicLayer.actions.layer.addAll',
+  RemoveAll = 'dynamicLayer.actions.layer.removeAll',
   EditLayer = 'editLayer',
   RemoveLayer = 'dynamicLayer.actions.layer.remove',
   DeleteSource = 'dynamicLayer.actions.source.delete',
@@ -29,22 +30,18 @@ export enum ActionsNames {
  * @returns The number of nested childre not added to the Map.
  */
 export function getNonAddedChildrenLength(rootItem: DataItem): number {
-  let count = rootItem.children.filter((c) => !c.isAddedToMap).length ?? 0;
-  function countChildren(item: DataItem[]): void {
-    item
-      .filter((child) => child.children.length)
-      .forEach((child) => {
-        count =
-          count +
-          (child.children.filter((c) => !c.isAddedToMap).length ?? 0) -
-          1;
-        if (child.children) {
-          countChildren(child.children);
-        }
-      });
+  function countNonAddedItems(item: DataItem): number {
+    let itemCount = 0;
+    for (const child of item.children) {
+      if (!child.isAddedToMap && !child.children.length) {
+        itemCount += 1;
+      }
+      itemCount += countNonAddedItems(child);
+    }
+    return itemCount;
   }
-  countChildren(rootItem.children);
-  return count;
+
+  return countNonAddedItems(rootItem);
 }
 
 /**
@@ -125,9 +122,11 @@ export function addAllNestedLayersFromItem(
     .filter((child) => !child.isAddedToMap)
     .forEach((child) => {
       applyFnToItemAndChildren((i) => {
-        addLayerFromItem(app, i).catch((error: unknown) => {
-          getLogger(name).error(String(error));
-        });
+        if (!i.children.length) {
+          addLayerFromItem(app, i).catch((error: unknown) => {
+            getLogger(name).error(String(error));
+          });
+        }
       }, child);
     });
   if (plugin.activeTab.value === CategoryType.WEBDATA) {
@@ -171,9 +170,22 @@ export function removeLayer(app: VcsUiApp, item: DataItem): void {
   const index = addedToMap.value.indexOf(item);
   addedToMap.value.splice(index, 1);
   item.isAddedToMap = false;
-  item.icon = undefined;
   // eslint-disable-next-line @typescript-eslint/no-use-before-define
   item.actions = getTreeviewDefaultActions(app, item);
+}
+
+/**
+ * Removes all layers from the Map that are children of the passed item.
+ * @param app The VcsUiApp.
+ * @param item The item from which to remove the nested items.
+ */
+export function removeAllNestedLayersFromItem(
+  app: VcsUiApp,
+  item: DataItem,
+): void {
+  applyFnToItemAndChildren((i: DataItem) => {
+    removeLayer(app, i);
+  }, item);
 }
 
 /**
@@ -222,11 +234,19 @@ export function getTreeviewDefaultActions(
       }),
     );
   }
-  if (item.children.some((c) => !c.isAddedToMap)) {
+  if (item.children.length) {
     actions.push(
       reactive({
         name: ActionsNames.AddAll,
+        disabled: !!(getNonAddedChildrenLength(item) === 0),
         callback: addAllNestedLayersFromItem.bind(null, app, item),
+      }),
+    );
+    actions.push(
+      reactive({
+        name: ActionsNames.RemoveAll,
+        disabled: !item.children.some((c) => c.isAddedToMap),
+        callback: removeAllNestedLayersFromItem.bind(null, app, item),
       }),
     );
   }
@@ -238,5 +258,23 @@ export function getTreeviewDefaultActions(
       }),
     );
   }
+
+  // Update rootItem's actions
+  const parent = getParentItem(app, item);
+  if (parent) {
+    const addAllAction = parent.actions.find(
+      (a) => a.name === String(ActionsNames.AddAll),
+    );
+    if (addAllAction) {
+      addAllAction.disabled = !!(getNonAddedChildrenLength(parent) === 0);
+    }
+    const removeAllAction = parent.actions.find(
+      (a) => a.name === String(ActionsNames.RemoveAll),
+    );
+    if (removeAllAction) {
+      removeAllAction.disabled = !parent.children.some((c) => c.isAddedToMap);
+    }
+  }
+
   return actions;
 }

@@ -130,7 +130,8 @@
       "layer": {
         "add": "Add layer to map",
         "addAll": "Add all nested layers",
-        "remove": "Remove from map"
+        "remove": "Remove from map",
+        "removeAll": "Remove all nested layers"
       },
       "source": {
         "add": "Add source",

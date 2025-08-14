@@ -130,7 +130,8 @@
       "layer": {
         "add": "Ebene zur Karte hinzufügen",
         "addAll": "Alle verschachtelten Ebenen hinzufügen",
-        "remove": "Aus der Karte entfernen"
+        "remove": "Aus der Karte entfernen",
+        "removeAll": "Alle verschachtelten Ebenen entfernen"
       },
       "source": {
         "add": "Webdatenquelle hinzufügen",

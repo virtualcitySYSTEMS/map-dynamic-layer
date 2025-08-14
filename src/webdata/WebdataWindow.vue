@@ -297,9 +297,6 @@
     :deep(.prepend:not(.level-0 .prepend)) {
       display: none !important;
     }
-    :deep(.v-spacer) {
-      display: none !important;
-    }
     :deep(.treenode):has(.active) {
       > button > span > i {
         color: rgb(var(--v-theme-primary)) !important;

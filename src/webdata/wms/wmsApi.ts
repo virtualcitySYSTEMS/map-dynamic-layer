@@ -75,8 +75,8 @@ function parseWmsSource(
       return prop as unknown;
     }
 
-    const alreadyExists = !!app.layers.getByKey(layer.Name);
-    return {
+    const alreadyExists = !!app.layers.hasKey(layer.Name);
+    const item: DataItem<WebdataTypes.WMS> = {
       optionalParameters,
       formats: capability.Request.GetMap.Format.filter(
         (f) => f === 'image/png' || f === 'image/jpeg',
@@ -87,7 +87,6 @@ function parseWmsSource(
           service.ContactInformation?.ContactPersonPrimary?.ContactOrganization,
         url: service.OnlineResource,
       },
-      isAddedToMap: alreadyExists,
       url,
       actions: [],
       type: WebdataTypes.WMS,
@@ -115,6 +114,8 @@ function parseWmsSource(
         ? layer.Layer?.map((l) => getNestedLayers(l))
         : [],
     };
+    item.isAddedToMap = alreadyExists && !item.children.length;
+    return item;
   }
 
   const content: Reactive<DataItem<WebdataTypes.WMS>> = reactive({
