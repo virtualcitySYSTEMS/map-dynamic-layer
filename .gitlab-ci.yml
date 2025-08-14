@@ -178,7 +178,7 @@ publish:
     - LEVEL=$([ $PUBLISH == "prerelease" ] && echo "prerelease" || echo "patch")
     - npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
     - NPM_TAG=$([ $PUBLISH == "prerelease" ] && echo "dev" || echo "latest")
-    - npm publish --tag $NPM_TAG
+    - npm publish --registry https://registry.npmjs.org --access public --tag $NPM_TAG
     - VERSION=$(node -pe "require('./package.json').version")
     - npm run bundle
     - 'curl --header "JOB-TOKEN: $CI_JOB_TOKEN" --upload-file dist/@vcmap-dynamic-layer.tar.gz "${CI_API_V4_URL}/projects/317/packages/generic/vcmap-dynamic-layer/${VERSION}/vcmap-dynamic-layer-${VERSION}.tar.gz"'
