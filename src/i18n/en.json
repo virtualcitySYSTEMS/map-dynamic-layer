@@ -83,6 +83,7 @@
       "license": "License",
       "modified": "Modified",
       "publisher": "Publisher",
+      "owner": "Owner",
       "website": "Website",
       "noInfoFor": "No information to be displayed for",
       "successfullyAdded": "has successfully been added! Edit its parameters from the Added Data tab."
@@ -162,7 +163,8 @@
       "presets": "Presets catalogues",
       "addPreset": "Add a catalogue",
       "subtitle": "Subtitle",
-      "logo": "Logo"
+      "logo": "Logo",
+      "filter": "Filter"
     }
   }
 }

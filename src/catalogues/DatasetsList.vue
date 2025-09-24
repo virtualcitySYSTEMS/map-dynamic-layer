@@ -190,6 +190,7 @@
           props.source.type,
           props.source.url,
           itemsPerPage,
+          props.source.filter,
           locale,
           page.value - 1,
           search.value ?? '',

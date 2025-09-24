@@ -72,12 +72,15 @@ export function preloadCatalogues(
       type: c.type,
       subtitle: c.subtitle,
       ...(c.logo && { logo: c.logo }),
+      ...(c.filter && { filter: c.filter }),
       ...(c.description && { description: c.description }),
     };
+
     return fetchCatalogue(
       catalogueItem.type,
       catalogueItem.url,
       plugin.config.catalogues.itemsPerPage,
+      c.filter,
     ).then((data) => {
       if (data) {
         const catalogue: CatalogueItem = {

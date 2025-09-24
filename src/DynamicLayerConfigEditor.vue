@@ -180,6 +180,25 @@
                     <VcsTextField id="logo" v-model="menuCatalogueItem.logo" />
                   </v-col>
                 </v-row>
+                <v-row
+                  v-if="
+                    menuCatalogueItem.type === 'geonetwork' ||
+                    menuCatalogueItem.type === 'piveau'
+                  "
+                  no-gutters
+                >
+                  <v-col>
+                    <VcsLabel html-for="filter">
+                      {{ $t('dynamicLayer.config.filter') }}
+                    </VcsLabel>
+                  </v-col>
+                  <v-col>
+                    <VcsTextField
+                      id="filter"
+                      v-model="menuCatalogueItem.filter"
+                    />
+                  </v-col>
+                </v-row>
                 <v-row no-gutters>
                   <VcsTextArea
                     v-model="menuCatalogueItem.description"

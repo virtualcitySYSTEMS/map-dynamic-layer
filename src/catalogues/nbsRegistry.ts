@@ -60,7 +60,7 @@ type RegistryDataset = Basic<{
   climateZone: string;
   dateCreated: number;
   geoLocation: GeoLocationDto;
-  id: number;
+  id?: number;
   idraDatasets: [];
   images: [];
   isUrbreathNbs: boolean;
@@ -86,7 +86,10 @@ export enum RegistrySortingOptions {
   lastCreated = 'issued+desc',
 }
 
-function parseRegistryDataset(data: RegistryDataset): Dataset {
+function parseRegistryDataset(data: RegistryDataset): Dataset | undefined {
+  if (!data.data?.id) {
+    return undefined;
+  }
   return {
     id: data.data.id.toString(),
     title: data.data.title,
@@ -138,7 +141,7 @@ function parseRegistryDataset(data: RegistryDataset): Dataset {
 export async function fetchRegistryDataset(
   catalogueUrl: string,
   nbsId: string,
-): Promise<Dataset> {
+): Promise<Dataset | undefined> {
   const url = new URL(`${removeLastSlash(catalogueUrl)}/api/nbs/${nbsId}`);
   const options = {
     method: 'GET',
@@ -156,6 +159,8 @@ export async function fetchRegistryDataset(
  */
 export async function fetchRegistry(
   catalogueUrl: string,
+  itemsPerPage: number,
+  page: number,
   filter: Record<string, string[]>,
 ): Promise<CatalogueData> {
   const criteria = Object.values(NBSCritera).reduce(
@@ -188,11 +193,15 @@ export async function fetchRegistry(
       if (!data.success) {
         throw new Error(data.message || 'Failed to fetch registry data');
       }
-      const datasets = await Promise.all(
-        data.data.map(async (entry) =>
-          fetchRegistryDataset(catalogueUrl, entry.id.toString()),
-        ),
-      );
+      const datasets = (
+        await Promise.all(
+          data.data.map(async (entry) =>
+            fetchRegistryDataset(catalogueUrl, entry.id.toString()),
+          ),
+        )
+      )
+        .filter((d) => !!d)
+        .slice(page * itemsPerPage, (page + 1) * itemsPerPage);
       const filters = await fetch(
         `${removeLastSlash(catalogueUrl)}/api/filters/`,
       )

@@ -82,6 +82,7 @@
       "license": "Lizenz",
       "modified": "Änderungsdatum",
       "publisher": "Herausgeber",
+      "owner": "Eigentümer",
       "website": "Website",
       "noInfoFor": "Keine anzuzeigenden Informationen für",
       "successfullyAdded": "wurde erfolgreich hinzugefügt! Bearbeiten Sie ihre Einstellungen auf der Registerkarte Hinzugefügte Daten."
@@ -162,7 +163,8 @@
       "presets": "Voreinstellungen für Kataloge",
       "addPreset": "Einen Katalog hinzufügen",
       "subtitle": "Untertitel",
-      "logo": "Logo"
+      "logo": "Logo",
+      "filter": "Filter"
     }
   }
 }

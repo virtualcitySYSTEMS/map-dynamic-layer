@@ -202,21 +202,22 @@ export async function fetchGeoNetwork(
   query: string,
   sort: string,
   facets: Record<string, string[]>,
+  filter?: string,
 ): Promise<CatalogueData> {
   const options = { method: 'GET', signal: AbortSignal.timeout(30000) };
-  const facetQ = { type: 'dataset', ...facets };
   const sortBy = Object.keys(GeoNetworkSortingOptions).includes(sort)
     ? GeoNetworkSortingOptions[sort as keyof typeof GeoNetworkSortingOptions]
     : GeoNetworkSortingOptions.relevance;
+  const facetQ = Object.entries({
+    ...facets,
+    ...(filter ? { type: [filter] } : {}),
+  })
+    .map(([k, v]) => `${k}/${encodeURIComponent(v[0])}`)
+    .join('&');
 
   const url = new URL(`${removeLastSlash(catalogueUrl)}/q`);
   url.searchParams.set('_content_type', 'json');
-  url.searchParams.set(
-    'facet.q',
-    Object.entries(facetQ)
-      .map(([k, v]) => `${k}/${encodeURIComponent(v)}`)
-      .join('&'),
-  );
+  url.searchParams.set('facet.q', facetQ);
   url.searchParams.set('resultType', 'details');
   url.searchParams.set('fast', 'index');
   url.searchParams.set('from', (itemsPerPage * page + 1).toString());

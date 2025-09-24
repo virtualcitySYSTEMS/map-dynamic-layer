@@ -74,8 +74,8 @@ export type CatalogueItem = {
   description?: string;
   /** Optional logo to overwrite the catalogue type's logo */
   logo?: string;
-  user?: string;
-  pwd?: string;
+  /** Optional filter to apply when loading the catalogue, defined in the config */
+  filter?: string;
   data: CatalogueData;
 };
 
@@ -97,6 +97,7 @@ export const sortOptions: Record<CataloguesTypes, Array<string>> = {
  * Fetches a catalogue based on the provided parameters.
  * @param item - A partial object of type `CatalogueItem` containing the item details.
  * @param itemsPerPage - The number of items to fetch per page.
+ * @param filter - An optional filter string to apply when fetching the catalogue.
  * @param locale - The locale to use for fetching the catalogue. Defaults to 'en'.
  * @param page - The page number to fetch. Defaults to 0.
  * @param query - The search query string. Defaults to an empty string.
@@ -108,6 +109,7 @@ export async function fetchCatalogue(
   catalogueType: CataloguesTypes,
   url: string,
   itemsPerPage: number,
+  filter?: string,
   locale = 'en',
   page = 0,
   query = '',
@@ -115,13 +117,30 @@ export async function fetchCatalogue(
   facets: Record<string, string[]> = {},
 ): Promise<CatalogueData | undefined> {
   if (catalogueType === CataloguesTypes.PIVEAU) {
-    return fetchPiveau(url, itemsPerPage, page, query, sortBy, facets, locale);
+    return fetchPiveau(
+      url,
+      itemsPerPage,
+      page,
+      query,
+      sortBy,
+      facets,
+      locale,
+      filter,
+    );
   } else if (catalogueType === CataloguesTypes.NBS) {
-    return fetchRegistry(url, facets);
+    return fetchRegistry(url, itemsPerPage, page, facets);
   } else if (catalogueType === CataloguesTypes.IDRA) {
     return fetchIdra(url, itemsPerPage, page, query, sortBy, facets);
   } else {
-    return fetchGeoNetwork(url, itemsPerPage, page, query, sortBy, facets);
+    return fetchGeoNetwork(
+      url,
+      itemsPerPage,
+      page,
+      query,
+      sortBy,
+      facets,
+      filter,
+    );
   }
 }
 

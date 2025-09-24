@@ -1,3 +1,11 @@
+# v1.0.5
+
+- Added a missing translation key
+- Added prefiltering options to Piveau and GeoNetwork catalogues
+- Fixed a bug where a NBS Registry would not load because of an invalid dataset
+- Fixed a pagination bug for NBS Registry catalogues
+- Fixed a bug where all entries were not shown for GeoNetwork catalogues
+
 # v1.0.3
 
 - Added a new 'Remove all' action to group items in Web Data

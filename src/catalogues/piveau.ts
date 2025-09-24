@@ -55,7 +55,7 @@ type PiveauResponse = {
     // index: string;
     count: number;
     results: Array<PiveauDataset>;
-    facets: Array<{
+    facets?: Array<{
       id: string;
       title: string;
       items: Array<{
@@ -124,16 +124,17 @@ function parsePiveauResponse(
   return {
     count: data.result.count,
     datasets: data.result.results.map((r) => parsePiveauDataset(r, locale)),
-    facets: data.result.facets
-      .filter((f) => f.items.length > 0)
-      .map((f) => ({
-        id: f.id,
-        title: f.title,
-        values: f.items.map((i) => ({
-          id: i.id,
-          title: `${getLocalizedValue(i.title, locale)} (${i.count})`,
-        })),
-      })),
+    facets:
+      data.result.facets
+        ?.filter((f) => f.items.length > 0)
+        .map((f) => ({
+          id: f.id,
+          title: f.title,
+          values: f.items.map((i) => ({
+            id: i.id,
+            title: `${getLocalizedValue(i.title, locale)} (${i.count})`,
+          })),
+        })) ?? [],
   };
 }
 
@@ -148,6 +149,7 @@ export async function fetchPiveau(
   sortBy: string | PiveauSortingOptions,
   facets: Record<string, string[]>,
   locale: string,
+  filter?: string,
 ): Promise<CatalogueData> {
   const options = {
     method: 'GET',
@@ -161,7 +163,9 @@ export async function fetchPiveau(
       )
     : PiveauSortingOptions.relevance;
   const url = new URL(`${removeLastSlash(catalogueUrl)}/search`);
-  url.searchParams.append('filter', 'dataset');
+  if (filter) {
+    url.searchParams.append('filter', filter);
+  }
   url.searchParams.append('q', query);
   url.searchParams.append('sort', sort);
   url.searchParams.append('page', page.toString());
