@@ -1,3 +1,9 @@
+# v1.0.7
+
+- Fixed a bug where fetching a WMS service would fail because of a missing `GetFeatureInfo` description in its capabilities
+- Fixed a bug where the `BBOX` would be wrong for WMS layers
+- Fixed a bug where the legend of an added layer would not appear immediately
+
 # v1.0.6
 
 - Fixed a bug where clicking on the 'Catalogue' tab would open catalogues overview even when only one catalogue is configured

@@ -62,9 +62,9 @@ export async function addLayerFromItem(
     const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
     try {
       const layer = itemToLayer(item, plugin.layerIndex);
-      await layer.activate();
       layer.properties.featureInfo = name;
       app.layers.add(layer);
+      await layer.activate();
 
       // Ensures if layer URL is a key in the plugin state
       if (!plugin.state[layer.url]) {

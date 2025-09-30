@@ -1,4 +1,9 @@
-import { Extent, WMSFeatureProvider, WMSLayer } from '@vcmap/core';
+import {
+  Extent,
+  wgs84Projection,
+  WMSFeatureProvider,
+  WMSLayer,
+} from '@vcmap/core';
 import { type VcsUiApp } from '@vcmap/ui';
 import type { Reactive } from 'vue';
 import { reactive, toRaw } from 'vue';
@@ -32,7 +37,7 @@ function parseWmsSource(
     new WMSCapabilities().read(xml) as WmsCapabilities;
 
   const featureInfoResponseType = wmsSupportedFeatureInfoType.find((t) =>
-    capability.Request.GetFeatureInfo.Format.includes(t),
+    capability.Request.GetFeatureInfo?.Format?.includes(t),
   );
 
   /**
@@ -201,9 +206,7 @@ export function itemToWmsLayer(
     name: item.name,
     layers: item.name,
     url: item.url,
-    extent:
-      item.extent?.toJSON() ??
-      new Extent({ coordinates: Extent.WGS_84_EXTENT }).toJSON(),
+    extent: item.extent?.toJSON() ?? wgs84Projection.toJSON(),
     parameters,
     properties: {
       title: item.title,
@@ -226,6 +229,8 @@ export function itemToWmsLayer(
       parameters,
       extent: item.extent,
       responseType: item.featureInfoResponseType,
+      minLevel: 0,
+      maxLevel: 18,
     });
   }
   return layer;
