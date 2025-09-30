@@ -1,3 +1,7 @@
+# v1.0.6
+
+- Fixed a bug where clicking on the 'Catalogue' tab would open catalogues overview even when only one catalogue is configured
+
 # v1.0.5
 
 - Added a missing translation key

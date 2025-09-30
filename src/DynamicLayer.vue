@@ -137,7 +137,8 @@
         switchCategory(cat: CategoryType): void {
           if (
             activeTab.value === CategoryType.CATALOGUES &&
-            cat === CategoryType.CATALOGUES
+            cat === CategoryType.CATALOGUES &&
+            catalogues.added.value.length > 1
           ) {
             plugin.catalogues.selected.value = undefined;
           }
