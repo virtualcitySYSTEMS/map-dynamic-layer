@@ -9,7 +9,7 @@ import {
   type VcsPlugin,
   type VcsUiApp,
 } from '@vcmap/ui';
-import { maxZIndex } from '@vcmap/core';
+import { markVolatile, maxZIndex } from '@vcmap/core';
 import { getLogger } from '@vcsuite/logger';
 import type { Ref } from 'vue';
 import { reactive, ref } from 'vue';
@@ -184,17 +184,19 @@ export default function plugin(
         name,
         ButtonLocation.CONTENT,
       );
-      vcsUiApp.contentTree.add(
-        new GroupContentTreeItem(
-          {
-            name,
-            title: 'dynamicLayer.contentTreeTitle',
-            initOpen: true,
-          },
-          vcsUiApp,
-        ),
+      const contentTreeItem = new GroupContentTreeItem(
+        {
+          name,
+          title: 'dynamicLayer.contentTreeTitle',
+          initOpen: true,
+        },
+        vcsUiApp,
       );
-      vcsUiApp.featureInfo.add(new TableFeatureInfoView({ name }));
+      markVolatile(contentTreeItem);
+      vcsUiApp.contentTree.add(contentTreeItem);
+      const tableView = new TableFeatureInfoView({ name });
+      markVolatile(tableView);
+      vcsUiApp.featureInfo.add(tableView);
 
       if (config.enabledTabs.includes(CategoryType.CATALOGUES)) {
         preloadCatalogues(app, config.catalogues.presets, pluginState?.entry);

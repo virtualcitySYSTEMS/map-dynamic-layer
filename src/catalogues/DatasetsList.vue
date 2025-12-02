@@ -20,7 +20,7 @@
         />
 
         <VcsButton
-          v-if="data.facets.length"
+          v-if="facets.length"
           class="pl-2"
           :active="Object.values(filters).some((f) => f.length)"
           icon="mdi-filter"
@@ -34,7 +34,7 @@
           >
             <v-card min-width="300">
               <v-row
-                v-for="facet in data.facets"
+                v-for="facet in facets"
                 :key="facet.id"
                 no-gutters
                 class="px-2 py-1"
@@ -186,18 +186,22 @@
           page.value = 1;
         }
 
+        const facets = Object.fromEntries(
+          Object.entries(filters)
+            .filter((f) => f[1].length > 0)
+            // Only take the first selected value for each facet, since the selection cannot be multiple
+            .map((f) => [f[0], f[1][0]]),
+        );
         const fetchedData = await fetchCatalogue(
           props.source.type,
           props.source.url,
           itemsPerPage,
           props.source.filter,
+          sortBy.value,
           locale,
           page.value - 1,
           search.value ?? '',
-          sortBy.value,
-          Object.fromEntries(
-            Object.entries(filters).filter((f) => f[1].length > 0),
-          ),
+          facets,
         )
           .catch(() => {
             silentUpdatePage.value = true;
@@ -243,6 +247,9 @@
         arraySelected,
         filters,
         openedFacet,
+        facets: data.value.facets.filter(
+          (f) => !Object.keys(props.source.filter ?? {}).includes(f.id),
+        ),
         async updateFilters(
           filterId: string,
           selection: Array<string>,

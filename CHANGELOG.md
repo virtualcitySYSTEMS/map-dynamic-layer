@@ -1,3 +1,8 @@
+# v2.0.0
+
+- Changed `filter` property of catalogues presets: a JSON object can now be passed to prefilter catalogue entries, using all available filtering options
+- Added `defaultSorting` option to catalogue configuration, allowing to set a sorting option per catalogue
+
 # v1.0.7
 
 - Fixed a bug where fetching a WMS service would fail because of a missing `GetFeatureInfo` description in its capabilities

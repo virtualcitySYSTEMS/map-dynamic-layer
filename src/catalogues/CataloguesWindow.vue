@@ -19,15 +19,16 @@
             />
           </template>
           <template #title>
-            <span class="d-flex align-start font-weight-black"
-              >{{ catalogue.title }}
+            <span class="d-flex align-start font-weight-black">
+              {{ $t(catalogue.title) }}
             </span>
           </template>
           <template #subtitle>
             <span class="text-wrap max-3-lines">
               {{
-                catalogue.subtitle ??
-                $t('dynamicLayer.catalogues.noDescription')
+                $t(
+                  catalogue.subtitle ?? 'dynamicLayer.catalogues.noDescription',
+                )
               }}
             </span>
           </template>

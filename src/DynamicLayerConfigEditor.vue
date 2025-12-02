@@ -180,6 +180,20 @@
                     <VcsTextField id="logo" v-model="menuCatalogueItem.logo" />
                   </v-col>
                 </v-row>
+                <v-row no-gutters>
+                  <v-col>
+                    <VcsLabel html-for="defaultSorting">
+                      {{ $t('dynamicLayer.config.defaultSorting') }}
+                    </VcsLabel>
+                  </v-col>
+                  <v-col>
+                    <VcsSelect
+                      id="defaultSorting"
+                      v-model="menuCatalogueItem.defaultSorting"
+                      :items="getsortOptions(menuCatalogueItem.type)"
+                    />
+                  </v-col>
+                </v-row>
                 <v-row
                   v-if="
                     menuCatalogueItem.type === 'geonetwork' ||
@@ -195,7 +209,14 @@
                   <v-col>
                     <VcsTextField
                       id="filter"
-                      v-model="menuCatalogueItem.filter"
+                      :rules="[isValidFilter]"
+                      :model-value="JSON.stringify(menuCatalogueItem.filter)"
+                      @update:model-value="
+                        (v: string) =>
+                          (menuCatalogueItem.filter = v
+                            ? JSON.parse(v)
+                            : undefined)
+                      "
                     />
                   </v-col>
                 </v-row>
@@ -258,6 +279,9 @@
   import { CategoryType } from './constants.js';
   import { getAvailableTypes } from './helper.js';
   import { CataloguesTypes } from './catalogues/catalogues.js';
+  import { PiveauSortingOptions } from './catalogues/piveau.js';
+  import { IdraSortingOptions } from './catalogues/idra.js';
+  import { GeoNetworkSortingOptions } from './catalogues/geonetwork.js';
 
   export default defineComponent({
     name: 'DynamicLayerConfigEditor',
@@ -355,6 +379,32 @@
         catalogues,
         menuCatalogueItem,
         dialog,
+        getsortOptions: (
+          type: CataloguesTypes,
+        ): { value: string; title: string }[] => {
+          if (type === CataloguesTypes.PIVEAU) {
+            return Object.entries(PiveauSortingOptions).map(
+              ([title, value]) => ({
+                value,
+                title: `dynamicLayer.catalogues.sortBy.${title}`,
+              }),
+            );
+          } else if (type === CataloguesTypes.IDRA) {
+            return Object.entries(IdraSortingOptions).map(([title, value]) => ({
+              value,
+              title: `dynamicLayer.catalogues.sortBy.${title}`,
+            }));
+          } else if (type === CataloguesTypes.GEONETWORK) {
+            return Object.entries(GeoNetworkSortingOptions).map(
+              ([title, value]) => ({
+                value,
+                title: `dynamicLayer.catalogues.sortBy.${title}`,
+              }),
+            );
+          } else {
+            return [];
+          }
+        },
         titleAction: ref([
           {
             name: 'dynamicLayer.config.addPreset',
@@ -377,6 +427,17 @@
             return Boolean(new URL(value));
           } catch (e) {
             return 'dynamicLayer.errors.invalidUrl';
+          }
+        },
+        isValidFilter(value: string): boolean | string {
+          if (!value) {
+            return true;
+          }
+          try {
+            JSON.parse(value);
+            return true;
+          } catch (e) {
+            return 'dynamicLayer.errors.invalidJson';
           }
         },
         checkDefaultTab(): void {

@@ -75,7 +75,7 @@ export type CatalogueItem = {
   /** Optional logo to overwrite the catalogue type's logo */
   logo?: string;
   /** Optional filter to apply when loading the catalogue, defined in the config */
-  filter?: string;
+  filter?: Record<string, string>;
   data: CatalogueData;
 };
 
@@ -109,12 +109,12 @@ export async function fetchCatalogue(
   catalogueType: CataloguesTypes,
   url: string,
   itemsPerPage: number,
-  filter?: string,
+  filter?: Record<string, string>,
+  sortBy = 'relevance',
   locale = 'en',
   page = 0,
   query = '',
-  sortBy = 'relevance',
-  facets: Record<string, string[]> = {},
+  facets: Record<string, string> = {},
 ): Promise<CatalogueData | undefined> {
   if (catalogueType === CataloguesTypes.PIVEAU) {
     return fetchPiveau(

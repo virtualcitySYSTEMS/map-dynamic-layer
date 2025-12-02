@@ -9,7 +9,8 @@ export type CataloguePreset = {
   logo?: string;
   subtitle?: string;
   description?: string;
-  filter?: string;
+  defaultSorting?: string;
+  filter?: Record<string, string>;
 };
 
 export type DynamicLayerConfig = {

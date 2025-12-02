@@ -161,22 +161,22 @@ export async function fetchRegistry(
   catalogueUrl: string,
   itemsPerPage: number,
   page: number,
-  filter: Record<string, string[]>,
+  filter: Record<string, string>,
 ): Promise<CatalogueData> {
   const criteria = Object.values(NBSCritera).reduce(
     (acc, key) => {
       const facetKey = `${key.slice(0, -3)}s`;
       if (filter[facetKey]) {
-        (acc as Record<NBSCritera, string[]>)[key] = filter[facetKey];
+        (acc as Record<NBSCritera, string>)[key] = filter[facetKey];
       }
       return acc;
     },
     {
-      [NBSCritera.CLIMATE_ZONES]: [],
-      [NBSCritera.PILOTS]: [],
-      [NBSCritera.KEYWORD_IDS]: [],
-      [NBSCritera.PROBLEM_IDS]: [],
-    } satisfies Record<NBSCritera, string[]>,
+      [NBSCritera.CLIMATE_ZONES]: '',
+      [NBSCritera.PILOTS]: '',
+      [NBSCritera.KEYWORD_IDS]: '',
+      [NBSCritera.PROBLEM_IDS]: '',
+    } satisfies Record<NBSCritera, string>,
   );
   const body = JSON.stringify({ ...criteria, onlyUrbreathNbs: false });
   const options = {

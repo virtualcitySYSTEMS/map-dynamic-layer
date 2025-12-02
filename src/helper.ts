@@ -66,21 +66,15 @@ export function preloadCatalogues(
    */
   function load(c: CataloguePreset): Promise<CatalogueItem | undefined> {
     const { host } = new URL(c.url);
-    const catalogueItem = {
-      title: c.title ?? host.replace('www.', ''),
-      url: c.url,
-      type: c.type,
-      subtitle: c.subtitle,
-      ...(c.logo && { logo: c.logo }),
-      ...(c.filter && { filter: c.filter }),
-      ...(c.description && { description: c.description }),
-    };
+    const title = c.title ?? host.split('.').slice(1).join('.');
+    const catalogueItem = { ...c, title };
 
     return fetchCatalogue(
       catalogueItem.type,
       catalogueItem.url,
       plugin.config.catalogues.itemsPerPage,
       c.filter,
+      c.defaultSorting,
     ).then((data) => {
       if (data) {
         const catalogue: CatalogueItem = {

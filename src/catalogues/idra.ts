@@ -132,13 +132,13 @@ function parseIdraResponse(data: IdraResponse): CatalogueData {
  * @returns An Array of filters.
  */
 function createFilteringObject(
-  facets: Record<string, string[]>,
+  facets: Record<string, string>,
   query: string,
 ): Array<object> {
   const filters = Object.entries(facets);
   const search = { field: 'ALL', value: query.replaceAll(' ', ',') };
   if (filters.length) {
-    return [...filters.map((f) => ({ field: f[0], value: f[1][0] })), search];
+    return [...filters.map((f) => ({ field: f[0], value: f[1] })), search];
   }
   return [search];
 }
@@ -174,7 +174,7 @@ export async function fetchIdra(
   page: number,
   query: string,
   sortBy: string,
-  facets: Record<string, string[]>,
+  facets: Record<string, string>,
 ): Promise<CatalogueData> {
   // 1. Get CataloguesInfo to retrieve catalogues that allows the search operation.
   // see https://idraopendata.docs.apiary.io/#reference/end-user-api/catalogues-info/get

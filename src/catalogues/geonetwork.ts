@@ -201,8 +201,8 @@ export async function fetchGeoNetwork(
   page: number,
   query: string,
   sort: string,
-  facets: Record<string, string[]>,
-  filter?: string,
+  facets: Record<string, string>,
+  filter?: Record<string, string>,
 ): Promise<CatalogueData> {
   const options = { method: 'GET', signal: AbortSignal.timeout(30000) };
   const sortBy = Object.keys(GeoNetworkSortingOptions).includes(sort)
@@ -210,9 +210,9 @@ export async function fetchGeoNetwork(
     : GeoNetworkSortingOptions.relevance;
   const facetQ = Object.entries({
     ...facets,
-    ...(filter ? { type: [filter] } : {}),
+    ...(filter ? filter : {}),
   })
-    .map(([k, v]) => `${k}/${encodeURIComponent(v[0])}`)
+    .map(([k, v]) => `${k}/${encodeURIComponent(v)}`)
     .join('&');
 
   const url = new URL(`${removeLastSlash(catalogueUrl)}/q`);

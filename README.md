@@ -78,15 +78,16 @@ The 'Added layers' section of the plugin shows all layers added to the Map, sort
 
 #### Catalogue presets configuration
 
-| Property    | Type     | Default                                 | Description                                                                                                                                                         | Allowed values                                |
-| ----------- | -------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| url         | `string` | `required`                              | The URL of the catalogue.                                                                                                                                           | _any_                                         |
-| type        | `string` | `required`                              | The type of the catalogue.                                                                                                                                          | 'idra', 'geonetwork', 'nbsRegistry', 'piveau' |
-| title       | `string` | Domain name                             | The title of the catalogue.                                                                                                                                         | _any_                                         |
-| logo        | `string` | Catalogue type logo                     | The logo of the catalogue, as a base64 image.                                                                                                                       | _any_                                         |
-| filter      | `string` | ''                                      | An optional filter key (e.g. 'dataset'), supported by Piveau and GeoNetwork catalogues. When not used for Piveau catalogues, the service does not return any facet. | _any_                                         |
-| subtitle    | `string` | Catalogue type                          | The catalogue subtitle.                                                                                                                                             | _any_                                         |
-| description | `string` | An explanation of how the catalogs work | The catalogue description. Is rendered as MarkDown when no dataset is selected.                                                                                     | _any_                                         |
+| Property       | Type                    | Default                                 | Description                                                                                                                                                       | Allowed values                                |
+| -------------- | ----------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| url            | `string`                | `required`                              | The URL of the catalogue.                                                                                                                                         | _any_                                         |
+| type           | `string`                | `required`                              | The type of the catalogue.                                                                                                                                        | 'idra', 'geonetwork', 'nbsRegistry', 'piveau' |
+| title          | `string`                | Domain name                             | The title of the catalogue.                                                                                                                                       | _any_                                         |
+| logo           | `string`                | Catalogue type logo                     | The logo of the catalogue, as a base64 image.                                                                                                                     | _any_                                         |
+| defaultSorting | `string`                | unset for Relevance                     | The default sorting applied to the catalogues items.                                                                                                              | _any_                                         |
+| filter         | `Record<string,string>` | none                                    | An optional object used to prefilter the catalogues entries, available for Piveau and GeoNetwork. Filter defined in the config will not be overridable in the UI. | _any_                                         |
+| subtitle       | `string`                | Catalogue type                          | The catalogue subtitle.                                                                                                                                           | _any_                                         |
+| description    | `string`                | An explanation of how the catalogs work | The catalogue description. Is rendered as MarkDown when no dataset is selected.                                                                                   | _any_                                         |
 
 A config entry could for example look like:
 
@@ -105,6 +106,7 @@ A config entry could for example look like:
         "url": "https://data.europa.eu/api/hub/search/",
         "type": "piveau",
         "title": "Data Europa",
+        "filter": { "filter": "dataset" },
         "subtitle": "The official portal for European data"
       },
       {

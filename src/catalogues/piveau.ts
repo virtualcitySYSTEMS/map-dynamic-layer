@@ -147,9 +147,9 @@ export async function fetchPiveau(
   page: number,
   query: string,
   sortBy: string | PiveauSortingOptions,
-  facets: Record<string, string[]>,
+  facets: Record<string, string>,
   locale: string,
-  filter?: string,
+  filter?: Record<string, string>,
 ): Promise<CatalogueData> {
   const options = {
     method: 'GET',
@@ -164,7 +164,9 @@ export async function fetchPiveau(
     : PiveauSortingOptions.relevance;
   const url = new URL(`${removeLastSlash(catalogueUrl)}/search`);
   if (filter) {
-    url.searchParams.append('filter', filter);
+    Object.entries(filter).forEach(([key, value]) => {
+      url.searchParams.append(key, value);
+    });
   }
   url.searchParams.append('q', query);
   url.searchParams.append('sort', sort);
