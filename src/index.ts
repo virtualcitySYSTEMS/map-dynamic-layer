@@ -211,7 +211,7 @@ export default function plugin(
               layerNames: Array<string>;
               type: WebdataTypes;
             };
-            fetchSource(app, key, type)
+            fetchSource(app, { url: key, type })
               .then((item) => {
                 item.children.forEach((child) => {
                   applyFnToItemAndChildren((i) => {

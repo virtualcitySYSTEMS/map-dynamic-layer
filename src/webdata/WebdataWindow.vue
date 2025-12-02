@@ -127,12 +127,29 @@
                 @keyup.enter="addSource"
               />
             </v-row>
+            <v-row no-gutters class="w-100 pt-3">
+              <VcsCheckbox
+                v-model="newSourceUseAuthentication"
+                label="dynamicLayer.webdata.add.useAuthentication"
+              />
+            </v-row>
+            <v-row v-if="newSourceUseAuthentication" no-gutters class="w-100">
+              <VcsTextField
+                v-model="newSourceAuthentication"
+                :label="$t('dynamicLayer.webdata.add.authentication')"
+                autofocus
+                :rules="[isAuthValid]"
+              />
+            </v-row>
             <span class="d-flex justify-end pt-3">
               <VcsFormButton
                 variant="filled"
                 :loading="isNewSourceLoading"
                 :disabled="
-                  !newSourceType || !newSourceUrl || isNewSourceLoading
+                  !newSourceType ||
+                  !newSourceUrl ||
+                  isNewSourceLoading ||
+                  (newSourceUseAuthentication && !newSourceAuthentication)
                 "
                 @click="addSource"
                 >{{ $t('dynamicLayer.actions.source.add') }}
@@ -150,6 +167,7 @@
   import {
     NotificationType,
     VcsButton,
+    VcsCheckbox,
     VcsFormButton,
     VcsLabel,
     VcsSelect,
@@ -166,17 +184,17 @@
     VRow,
     VSpacer,
   } from 'vuetify/components';
+  import { name } from '../../package.json';
+  import type { DynamicLayerPlugin } from '../index.js';
   import { fetchSource } from './webdataApi.js';
   import {
     filterItemChildren,
     isWxsWebdataType,
     parseWebdataUrl,
   } from './webdataHelper.js';
-  import type { DynamicLayerPlugin } from '../index.js';
   import { CategoryType } from '../constants.js';
   import { getAvailableTypes } from '../helper.js';
   import type { DataItem } from './webdataConstants.js';
-  import { name } from '../../package.json';
   import DlTreeviewTitle from '../DlTreeviewTitle.vue';
   import {
     addAllNestedLayersFromItem,
@@ -197,6 +215,7 @@
       VRow,
       VSpacer,
       VcsButton,
+      VcsCheckbox,
       VcsFormButton,
       VcsLabel,
       VcsSelect,
@@ -216,11 +235,24 @@
       const availableTypes = getAvailableTypes(CategoryType.WEBDATA);
       const newSourceType = ref(plugin.config.webdata.defaultType);
       const newSourceUrl = ref(plugin.config.webdata.defaultUrl);
+      const newSourceUseAuthentication = ref(false);
+      const newSourceAuthentication = ref('{"authentication": "token"}');
       const filterActive = ref(false);
+
+      function isAuthValid(v: string): boolean {
+        try {
+          const auth = JSON.parse(v);
+          return typeof auth === 'object' && Object.keys(auth).length > 0;
+        } catch {
+          return false;
+        }
+      }
 
       return {
         newSourceType,
         newSourceUrl,
+        newSourceUseAuthentication,
+        newSourceAuthentication,
         added,
         opened,
         selected,
@@ -245,13 +277,23 @@
             ? item.name
             : parseWebdataUrl(item.url, item.type);
         },
-
+        isAuthValid,
         async addSource(): Promise<void> {
           if (
             !newSourceType.value ||
             !newSourceUrl.value ||
             isNewSourceLoading.value
           ) {
+            return;
+          }
+          if (
+            newSourceUseAuthentication.value &&
+            !isAuthValid(newSourceAuthentication.value)
+          ) {
+            app.notifier.add({
+              type: NotificationType.ERROR,
+              message: 'dynamicLayer.errors.invalidAuthentication',
+            });
             return;
           }
           filterActive.value = false;
@@ -269,11 +311,17 @@
               isNewSourceLoading.value = false;
               return;
             }
-            const item = await fetchSource(
-              app,
-              newSourceUrl.value,
-              newSourceType.value,
-            );
+            const headers = (
+              newSourceUseAuthentication.value
+                ? JSON.parse(newSourceAuthentication.value)
+                : undefined
+            ) as Record<string, string> | undefined;
+            const sourceOptions = {
+              url: newSourceUrl.value,
+              type: newSourceType.value,
+              headers,
+            };
+            const item = await fetchSource(app, sourceOptions);
             selected.value = item;
             opened.value = [item.name];
             added.value.push(item);

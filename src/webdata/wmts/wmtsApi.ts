@@ -153,6 +153,7 @@ export function itemToWmtsLayer(
     url: appendQueryParamsToUrl(item.url, item.optionalParameters),
     name: item.name,
     layer: item.name,
+    headers: toRaw(item.headers),
     tileMatrixSetID: item.defaultTileMatrixSetId,
     format: item.formats?.[0],
     wmtsStyle:

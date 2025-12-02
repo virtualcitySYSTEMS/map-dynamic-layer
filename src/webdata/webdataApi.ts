@@ -17,46 +17,64 @@ import {
 } from './pointcloud/pointCloudApi.js';
 import { addCzmlSource, itemToCzml } from './czml/czmlApi.js';
 import { name } from '../../package.json';
-import { getUniqueLayerName } from './webdataHelper.js';
+import {
+  applyFnToItemAndChildren,
+  getUniqueLayerName,
+} from './webdataHelper.js';
+
+type SourceOptions = {
+  url: string;
+  type: WebdataTypes;
+  id?: string;
+  title?: string;
+  headers?: Record<string, string>;
+};
 
 /**
  * Fetches a source at the passed URL and returns the DataItem created.
- * @param app The VcsUiApp.
- * @param url The URL to fetch.
- * @param type The type of source to fetch.
- * @param id An unique identifier for the DataItem to be created.
- * @param title The title of the DataItem to be created.
  * @returns The DataItem of the source.
  */
 export async function fetchSource(
   app: VcsUiApp,
-  url: string,
-  type: WebdataTypes,
-  id?: string,
-  title?: string,
+  options: SourceOptions,
 ): Promise<DataItem> {
-  const ensuredTitle = title || getUniqueLayerName(app, type);
-  const uniqueName = id || ensuredTitle;
-  switch (type) {
+  const ensuredTitle = options.title || getUniqueLayerName(app, options.type);
+  const uniqueName = options.id || ensuredTitle;
+  let item: DataItem;
+  switch (options.type) {
     case WebdataTypes.CESIUM_TILESET:
-      return addCesiumTilesetSource(app, url, uniqueName, ensuredTitle);
+      item = addCesiumTilesetSource(app, options.url, uniqueName, ensuredTitle);
+      break;
     case WebdataTypes.CZML:
-      return addCzmlSource(app, url, uniqueName, ensuredTitle);
+      item = addCzmlSource(app, options.url, uniqueName, ensuredTitle);
+      break;
     case WebdataTypes.GEOJSON:
-      return addGeoJSONSource(app, url, uniqueName, ensuredTitle);
+      item = addGeoJSONSource(app, options.url, uniqueName, ensuredTitle);
+      break;
     case WebdataTypes.POINTCLOUD:
-      return addPointCloudSource(app, url, uniqueName, ensuredTitle);
+      item = addPointCloudSource(app, options.url, uniqueName, ensuredTitle);
+      break;
     case WebdataTypes.TERRAIN:
-      return addTerrainSource(app, url, uniqueName, ensuredTitle);
+      item = addTerrainSource(app, options.url, uniqueName, ensuredTitle);
+      break;
     case WebdataTypes.WFS:
-      return addWfsSource(app, url);
+      item = await addWfsSource(app, options.url);
+      break;
     case WebdataTypes.WMS:
-      return addWmsSource(app, url);
+      item = await addWmsSource(app, options.url);
+      break;
     case WebdataTypes.WMTS:
-      return addWmtsSource(app, url);
+      item = await addWmtsSource(app, options.url);
+      break;
     default:
       throw new Error(app.vueI18n.t('dynamicLayer.errors.fetchingSource'));
   }
+  if (options.headers) {
+    applyFnToItemAndChildren((dataItem) => {
+      dataItem.headers = options.headers!;
+    }, item);
+  }
+  return item;
 }
 
 /**

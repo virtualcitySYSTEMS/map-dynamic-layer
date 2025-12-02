@@ -173,6 +173,7 @@ export function itemToWfsLayer(
     url: appendQueryParamsToUrl(item.url, item.optionalParameters),
     name: item.name,
     extent: item.extent?.toJSON(),
+    headers: toRaw(item.headers),
     featureType,
     featurePrefix,
     featureNS: item.namespace ?? '',

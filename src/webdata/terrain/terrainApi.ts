@@ -1,6 +1,6 @@
 import { TerrainLayer } from '@vcmap/core';
 import { type VcsUiApp } from '@vcmap/ui';
-import { reactive } from 'vue';
+import { reactive, toRaw } from 'vue';
 import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';
 import type { DataItem } from '../webdataConstants.js';
 import { WebdataTypes } from '../webdataConstants.js';
@@ -45,7 +45,7 @@ export function itemToTerrainLayer(item: DataItem): TerrainLayer {
   return new TerrainLayer({
     url: item.url,
     name: item.name,
-    activeOnStartup: true,
+    headers: toRaw(item.headers),
     properties: { title: item.title },
   });
 }

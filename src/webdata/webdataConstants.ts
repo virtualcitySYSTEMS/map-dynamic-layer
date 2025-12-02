@@ -50,6 +50,7 @@ export type DataItem<T extends WebdataTypes = WebdataTypes> = {
   name: string;
   title: string;
   url: string;
+  headers?: Record<string, string>;
   isAddedToMap?: boolean;
   isRootElement?: boolean;
   // CesiumTileset, PointCloud and Terrain layers have no specific properties

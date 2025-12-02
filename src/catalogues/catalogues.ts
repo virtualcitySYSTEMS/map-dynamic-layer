@@ -205,7 +205,8 @@ export async function addDistributionToMap(
   zoomToExtent = false,
 ): Promise<undefined | DataItem> {
   try {
-    const source = await fetchSource(app, url, dataType, id, title);
+    const sourceOptions = { url, type: dataType, id, title };
+    const source = await fetchSource(app, sourceOptions);
     if (!source.children.length) {
       await addLayerFromItem(app, source);
       if (zoomToExtent) {

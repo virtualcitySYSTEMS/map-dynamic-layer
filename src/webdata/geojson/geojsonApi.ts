@@ -1,7 +1,7 @@
 import { GeoJSONLayer, Projection } from '@vcmap/core';
 import { type VcsUiApp } from '@vcmap/ui';
 import type { Reactive } from 'vue';
-import { reactive } from 'vue';
+import { reactive, toRaw } from 'vue';
 import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';
 import type { DataItem } from '../webdataConstants.js';
 import { WebdataTypes } from '../webdataConstants.js';
@@ -42,6 +42,7 @@ export function itemToGeoJSONLayer(item: DataItem): GeoJSONLayer {
   return new GeoJSONLayer({
     url: item.url,
     name: item.name,
+    headers: toRaw(item.headers),
     projection: new Projection({ epsg: 4326 }),
     properties: { title: item.title },
   });

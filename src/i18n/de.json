@@ -29,7 +29,9 @@
       "add": {
         "title": "Hinzufügen einer neuen Webdatenquelle per URL",
         "type": "Wählen Sie den Typ der Webdatenquelle",
-        "url": "Geben Sie die URL des Webdienstes ein"
+        "url": "Geben Sie die URL des Webdienstes ein",
+        "useAuthentication": "Authentifizierung verwenden",
+        "authentication": "Authentifizierung"
       }
     },
     "catalogues": {
@@ -145,6 +147,7 @@
       "alreadyAdded": "ist bereits hinzugefügt worden!",
       "invalidUrl": "Diese URL ist nicht gültig!",
       "invalidJson": "Das bereitgestellte JSON ist ungültig!",
+      "invalidAuthentication": "Die bereitgestellte Authentifizierung ist ungültig! Es muss sich um ein gültiges JSON-Objekt handeln.",
       "fetchingCatalogue": "Es ist ein Fehler beim Abrufen des Katalogs unter",
       "fetchingDatasetDetails": "Beim Abrufen der Datensatzdetails ist ein Fehler aufgetreten",
       "fetchingSource": "Beim Abrufen der Quelle ist ein Fehler aufgetreten.",

@@ -206,6 +206,7 @@ export function itemToWmsLayer(
     name: item.name,
     layers: item.name,
     url: item.url,
+    headers: toRaw(item.headers),
     extent: item.extent?.toJSON() ?? wgs84Projection.toJSON(),
     parameters,
     properties: {

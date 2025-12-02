@@ -1,6 +1,6 @@
 import { CzmlLayer } from '@vcmap/core';
 import { type VcsUiApp } from '@vcmap/ui';
-import { reactive } from 'vue';
+import { reactive, toRaw } from 'vue';
 import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';
 import type { DataItem } from '../webdataConstants.js';
 import { WebdataTypes } from '../webdataConstants.js';
@@ -41,6 +41,7 @@ export function itemToCzml(item: DataItem): CzmlLayer {
   return new CzmlLayer({
     url: item.url,
     name: item.name,
+    headers: toRaw(item.headers),
     properties: { title: item.title },
   });
 }

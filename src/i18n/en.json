@@ -29,7 +29,9 @@
       "add": {
         "title": "Add a new web data source to map by URL",
         "type": "Select the web data source type",
-        "url": "Enter the web service URL"
+        "url": "Enter the web service URL",
+        "useAuthentication": "Use authentication",
+        "authentication": "Authentication"
       }
     },
     "catalogues": {
@@ -145,6 +147,7 @@
       "alreadyAdded": "has already been added!",
       "invalidUrl": "This URL is invalid!",
       "invalidJson": "The provided JSON is invalid!",
+      "invalidAuthentication": "The provided authentication is invalid! It must be a valid JSON object.",
       "fetchingCatalogue": "An error occurred while fetching the catalogue at",
       "fetchingDatasetDetails": "An error occurred while fetching the dataset details",
       "fetchingSource": "An error occurred while fetching the source.",
