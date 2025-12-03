@@ -3,6 +3,7 @@
 - Changed `filter` property of catalogues presets: a JSON object can now be passed to prefilter catalogue entries, using all available filtering options
 - Added `defaultSorting` option to catalogue configuration, allowing to set a sorting option per catalogue
 - Added an Authentication inputfield in the Webdata tab
+- Fixed a bug where the default tab selector in the ConfigEditor would not work properly
 
 # v1.0.7
 

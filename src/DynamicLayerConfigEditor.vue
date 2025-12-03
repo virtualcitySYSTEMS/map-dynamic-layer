@@ -38,9 +38,10 @@
             <VcsSelect
               id="defaultTab"
               v-model="localConfig.defaultTab"
-              :items="localConfig.enabledTabs"
               :actions="titleAction"
-              :item-text="(s: string) => $t(`dynamicLayer.${s}.title`)"
+              :items="
+                tabs.filter((t) => localConfig.enabledTabs.includes(t.value))
+              "
             />
           </v-col>
         </v-row>
