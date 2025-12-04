@@ -1,3 +1,7 @@
+# v2.0.1
+
+- Fixed a bug where Authentication headers would not be used when fetching WFS, WMS and WMTS capabilities
+
 # v2.0.0
 
 - Changed `filter` property of catalogues presets: a JSON object can now be passed to prefilter catalogue entries, using all available filtering options

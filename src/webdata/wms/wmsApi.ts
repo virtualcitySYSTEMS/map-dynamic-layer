@@ -8,6 +8,7 @@ import { type VcsUiApp } from '@vcmap/ui';
 import type { Reactive } from 'vue';
 import { reactive, toRaw } from 'vue';
 import WMSCapabilities from 'ol/format/WMSCapabilities';
+import { getInitForUrl } from '../../helper.js';
 import {
   parseWebdataUrl,
   getCapabilitiesParameters,
@@ -169,14 +170,15 @@ function parseWmsSource(
 export async function addWmsSource(
   app: VcsUiApp,
   rawUrl: string,
+  headers?: Record<string, string>,
 ): Promise<DataItem> {
   const serverUrl = parseWebdataUrl(rawUrl, WebdataTypes.WMS);
   const { parameters, optionalParameters } = getCapabilitiesParameters(
     rawUrl,
     'WMS',
   );
-
-  return fetch(`${serverUrl}?${parameters}`)
+  const init = getInitForUrl(serverUrl, headers);
+  return fetch(`${serverUrl}?${parameters}`, init)
     .then((res) => res.text())
     .then((xml) => parseWmsSource(app, xml, serverUrl, optionalParameters));
 }

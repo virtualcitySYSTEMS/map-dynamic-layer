@@ -3,6 +3,7 @@ import { Extent, WMTSLayer } from '@vcmap/core';
 import type { Reactive } from 'vue';
 import { reactive, toRaw } from 'vue';
 import WMTSCapabilities from 'ol/format/WMTSCapabilities.js';
+import { getInitForUrl } from '../../helper.js';
 import type { DataItem } from '../webdataConstants.js';
 import { WebdataTypes } from '../webdataConstants.js';
 import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';
@@ -126,13 +127,15 @@ function parseWmtsCapabilities(
 export async function addWmtsSource(
   app: VcsUiApp,
   rawUrl: string,
+  headers?: Record<string, string>,
 ): Promise<DataItem> {
   const serverUrl = parseWebdataUrl(rawUrl, WebdataTypes.WMTS);
   const { parameters, optionalParameters } = getCapabilitiesParameters(
     rawUrl,
     'WMTS',
   );
-  return fetch(`${serverUrl}?${parameters}`)
+  const init = getInitForUrl(serverUrl, headers);
+  return fetch(`${serverUrl}?${parameters}`, init)
     .then((r) => r.text())
     .then((xml) =>
       parseWmtsCapabilities(app, xml, serverUrl, optionalParameters),

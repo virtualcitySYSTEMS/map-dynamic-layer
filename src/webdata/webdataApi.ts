@@ -58,13 +58,13 @@ export async function fetchSource(
       item = addTerrainSource(app, options.url, uniqueName, ensuredTitle);
       break;
     case WebdataTypes.WFS:
-      item = await addWfsSource(app, options.url);
+      item = await addWfsSource(app, options.url, options.headers);
       break;
     case WebdataTypes.WMS:
-      item = await addWmsSource(app, options.url);
+      item = await addWmsSource(app, options.url, options.headers);
       break;
     case WebdataTypes.WMTS:
-      item = await addWmtsSource(app, options.url);
+      item = await addWmtsSource(app, options.url, options.headers);
       break;
     default:
       throw new Error(app.vueI18n.t('dynamicLayer.errors.fetchingSource'));

@@ -1,5 +1,6 @@
 import { NotificationType, type VcsUiApp } from '@vcmap/ui';
 import { getLogger } from '@vcsuite/logger';
+import { TrustedServers } from '@vcmap-cesium/engine';
 import { CategoryType } from './constants.js';
 import { WebdataTypes } from './webdata/webdataConstants.js';
 import { name } from '../package.json';
@@ -123,4 +124,19 @@ export function preloadCatalogues(
   ).catch((error: unknown) => {
     getLogger(name).error(String(error));
   });
+}
+
+// TODO use @vcmap/core util when updating to 6.3
+export function getInitForUrl(
+  url: string,
+  headers?: Record<string, string>,
+): RequestInit {
+  const init: RequestInit = {};
+  if (headers) {
+    init.headers = headers;
+  }
+  if (TrustedServers.contains(url)) {
+    init.credentials = 'include';
+  }
+  return init;
 }

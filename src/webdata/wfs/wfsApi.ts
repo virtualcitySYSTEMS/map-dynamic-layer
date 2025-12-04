@@ -3,6 +3,7 @@ import { Extent, WFSLayer } from '@vcmap/core';
 import type { Reactive } from 'vue';
 import { reactive, toRaw } from 'vue';
 import WFSCapabilities from 'ol-wfs-capabilities';
+import { getInitForUrl } from '../../helper.js';
 import {
   parseWebdataUrl,
   appendQueryParamsToUrl,
@@ -142,13 +143,15 @@ async function parseWfsCapabilities(
 export async function addWfsSource(
   app: VcsUiApp,
   rawUrl: string,
+  headers?: Record<string, string>,
 ): Promise<DataItem> {
   const serverUrl = parseWebdataUrl(rawUrl, WebdataTypes.WFS);
   const { parameters, optionalParameters } = getCapabilitiesParameters(
     rawUrl,
     'WFS',
   );
-  return fetch(`${serverUrl}?${parameters}`)
+  const init = getInitForUrl(serverUrl, headers);
+  return fetch(`${serverUrl}?${parameters}`, init)
     .then((r) => r.text())
     .then((xml) =>
       parseWfsCapabilities(app, xml, serverUrl, optionalParameters),
