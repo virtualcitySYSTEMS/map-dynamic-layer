@@ -80,6 +80,7 @@ export function preloadCatalogues(
       if (data) {
         const catalogue: CatalogueItem = {
           ...catalogueItem,
+          defaultSorting: c.defaultSorting,
           data,
         };
         plugin.catalogues.added.value.push(catalogue);

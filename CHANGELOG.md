@@ -1,6 +1,7 @@
 # v2.0.1
 
 - Fixed a bug where Authentication headers would not be used when fetching WFS, WMS and WMTS capabilities
+- Fixed a bug where setting `defaultSorting` for a catalogue preset would not be reflected in the UI
 
 # v2.0.0
 

@@ -147,7 +147,9 @@
       const searchLoading = ref(false);
 
       const loading = ref(false);
-      const sortBy = ref(sortOptions[props.source.type]?.[0]);
+      const sortBy = ref(
+        props.source.defaultSorting ?? sortOptions[props.source.type]?.[0],
+      );
       const sortByActions = sortOptions[props.source.type]?.map((sort) =>
         reactive({
           active: computed(() => sortBy.value === sort),

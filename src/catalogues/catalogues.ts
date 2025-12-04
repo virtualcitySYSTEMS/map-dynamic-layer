@@ -76,6 +76,7 @@ export type CatalogueItem = {
   logo?: string;
   /** Optional filter to apply when loading the catalogue, defined in the config */
   filter?: Record<string, string>;
+  defaultSorting?: string;
   data: CatalogueData;
 };
 
