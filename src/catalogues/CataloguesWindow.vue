@@ -72,8 +72,9 @@
           v-else
           class="pa-1"
           :content="
-            selectedCatalogue.description ??
-            $t('dynamicLayer.catalogues.defaultMarkdownDescription')
+            selectedCatalogue.description
+              ? $t(selectedCatalogue.description)
+              : $t('dynamicLayer.catalogues.defaultMarkdownDescription')
           "
         />
       </v-col>

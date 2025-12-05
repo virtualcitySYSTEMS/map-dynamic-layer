@@ -1,3 +1,7 @@
+# v2.0.2
+
+- Fixed a bug where catalogues descritpion would not be translated when using a user-defined i18n key
+
 # v2.0.1
 
 - Fixed a bug where Authentication headers would not be used when fetching WFS, WMS and WMTS capabilities
