@@ -11,7 +11,7 @@ import {
 } from '@vcmap/ui';
 import { markVolatile, maxZIndex } from '@vcmap/core';
 import { getLogger } from '@vcsuite/logger';
-import type { Ref } from 'vue';
+import type { Reactive, Ref } from 'vue';
 import { reactive, ref } from 'vue';
 import { deepmergeCustom } from 'deepmerge-ts';
 import { name, version, mapVersion } from '../package.json';
@@ -69,6 +69,7 @@ export type DynamicLayerPlugin = VcsPlugin<
   config: DynamicLayerConfig;
   state: DynamicLayerState;
   activeTab: Ref<CategoryType>;
+  leftPanelActive: Reactive<Record<CategoryType, boolean>>;
   addedToMap: Ref<Array<DataItem>>;
   /** The selected item in the Added tab. */
   addedSelected: Ref<DataItem | undefined>;
@@ -89,6 +90,11 @@ export default function plugin(
 
   const addedToMap = ref([]);
   const addedSelected: Ref<DataItem | undefined> = ref();
+  const leftPanelActive = reactive({
+    [CategoryType.WEBDATA]: false,
+    [CategoryType.CATALOGUES]: true,
+    [CategoryType.ADDED]: false,
+  });
   const activeTab = ref(
     config.enabledTabs.includes(config.defaultTab)
       ? config.defaultTab
@@ -125,7 +131,7 @@ export default function plugin(
     addedSelected,
     catalogues,
     webdata,
-
+    leftPanelActive,
     get layerIndex(): number {
       if (!layerIndex) {
         const layerIndexes = [...app.layers]
@@ -171,7 +177,6 @@ export default function plugin(
             right: '20%',
             top: '10%',
             height: 600,
-            minWidth: 800,
           },
         },
         vcsUiApp.windowManager,

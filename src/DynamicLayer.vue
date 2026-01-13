@@ -1,32 +1,43 @@
 <template>
   <v-sheet>
-    <v-tabs color="primary" height="32" :model-value="activeTab">
-      <span v-for="type in enabledTabs" :key="type">
-        <v-tab
-          :value="type"
-          :text="$t(`dynamicLayer.${type}.title`)"
-          @click="switchCategory(type)"
-        >
-          <template #append>
-            <VcsBadge
-              v-if="type === CategoryType.ADDED && addedHasUpdate"
-              class="position-absolute"
-            />
-            <VcsActionButtonList
-              v-else-if="
-                type === CategoryType.CATALOGUES &&
-                activeTab === CategoryType.CATALOGUES &&
-                catalogues.added.value.length > 1 &&
-                catalogues.selected.value
-              "
-              :actions="cataloguesActions"
-              overflow-icon="mdi-chevron-down"
-              :overflow-count="0"
-            />
-          </template>
-        </v-tab>
-      </span>
-    </v-tabs>
+    <v-row no-gutters class="d-flex align-center">
+      <VcsButton
+        v-if="mdAndDown"
+        :active="toggleState"
+        :disabled="disableToggle"
+        :tooltip="$t('dynamicLayer.actions.toggleDatasetList')"
+        icon="mdi-view-split-vertical"
+        class="toggle-button px-2"
+        @click="toggleOverlay"
+      />
+      <v-tabs color="primary" height="32" :model-value="activeTab">
+        <span v-for="type in enabledTabs" :key="type">
+          <v-tab
+            :value="type"
+            :text="$t(`dynamicLayer.${type}.title`)"
+            @click="switchCategory(type)"
+          >
+            <template #append>
+              <VcsBadge
+                v-if="type === CategoryType.ADDED && addedHasUpdate"
+                class="position-absolute"
+              />
+              <VcsActionButtonList
+                v-else-if="
+                  type === CategoryType.CATALOGUES &&
+                  activeTab === CategoryType.CATALOGUES &&
+                  addedCatalogue.length > 1 &&
+                  selectedCatalogue
+                "
+                :actions="cataloguesActions"
+                overflow-icon="mdi-chevron-down"
+                :overflow-count="0"
+              />
+            </template>
+          </v-tab>
+        </span>
+      </v-tabs>
+    </v-row>
     <v-divider />
     <v-container class="pa-0 dl-content">
       <v-tabs-window v-model="activeTab" class="h-100">
@@ -45,7 +56,16 @@
 </template>
 
 <script lang="ts">
-  import { computed, defineComponent, inject, reactive, ref, watch } from 'vue';
+  import {
+    computed,
+    defineComponent,
+    inject,
+    onMounted,
+    onUnmounted,
+    reactive,
+    ref,
+    watch,
+  } from 'vue';
   import {
     VTab,
     VTabs,
@@ -54,8 +74,15 @@
     VContainer,
     VSheet,
     VDivider,
+    VRow,
   } from 'vuetify/components';
-  import { VcsActionButtonList, VcsBadge, type VcsUiApp } from '@vcmap/ui';
+  import { useDisplay } from 'vuetify';
+  import {
+    VcsActionButtonList,
+    VcsBadge,
+    VcsButton,
+    type VcsUiApp,
+  } from '@vcmap/ui';
   import type { DynamicLayerPlugin } from './index.js';
   import { CategoryType } from './constants.js';
   import Webdata from './webdata/WebdataWindow.vue';
@@ -70,6 +97,7 @@
     components: {
       VContainer,
       VDivider,
+      VRow,
       VSheet,
       VTab,
       VTabs,
@@ -77,6 +105,7 @@
       VTabsWindowItem,
       VcsActionButtonList,
       VcsBadge,
+      VcsButton,
       AddedData,
       Catalogues,
       Webdata,
@@ -84,7 +113,9 @@
     setup() {
       const app = inject('vcsApp') as VcsUiApp;
       const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
-      const { activeTab, addedToMap, catalogues, config } = plugin;
+      const { activeTab, addedToMap, config, leftPanelActive } = plugin;
+      const { added: addedCatalogue, selected: selectedCatalogue } =
+        plugin.catalogues;
 
       const enabledTabs = computed(() => {
         return [
@@ -98,16 +129,16 @@
         reactive({
           name: 'dynamicLayer.actions.overview',
           callback: (): void => {
-            catalogues.selected.value = undefined;
+            selectedCatalogue.value = undefined;
           },
         }),
-        ...catalogues.added.value.map((c) => {
+        ...addedCatalogue.value.map((c) => {
           return reactive({
             name: c.title,
             title: `${c.data.count.toLocaleString(app.locale)} ${app.vueI18n.t('dynamicLayer.catalogues.datasets')} @ ${new URL(c.url).host}`,
-            active: computed(() => catalogues.selected.value?.url === c.url),
+            active: computed(() => selectedCatalogue.value?.url === c.url),
             callback: (): void => {
-              catalogues.selected.value = c;
+              selectedCatalogue.value = c;
             },
           });
         }),
@@ -126,11 +157,40 @@
         }
       });
 
+      const { mdAndDown } = useDisplay();
+      const disableToggle = computed(
+        () =>
+          activeTab.value === CategoryType.CATALOGUES &&
+          !selectedCatalogue.value,
+      );
+      const toggleState = computed(() => leftPanelActive[activeTab.value]);
+      const toggleOverlay = (): void => {
+        leftPanelActive[activeTab.value] = !leftPanelActive[activeTab.value];
+      };
+      const handleEscape = (event: KeyboardEvent): void => {
+        if (event.key === 'ArrowRight' && mdAndDown.value) {
+          toggleOverlay();
+        }
+      };
+
+      onMounted(() => {
+        window.addEventListener('keydown', handleEscape);
+      });
+
+      onUnmounted(() => {
+        window.removeEventListener('keydown', handleEscape);
+      });
+
       return {
+        mdAndDown,
+        disableToggle,
+        toggleState,
+        toggleOverlay,
         CategoryType,
         activeTab,
         enabledTabs,
-        catalogues,
+        addedCatalogue,
+        selectedCatalogue,
         cataloguesActions,
         addedHasUpdate,
 
@@ -138,9 +198,9 @@
           if (
             activeTab.value === CategoryType.CATALOGUES &&
             cat === CategoryType.CATALOGUES &&
-            catalogues.added.value.length > 1
+            addedCatalogue.value.length > 1
           ) {
-            plugin.catalogues.selected.value = undefined;
+            selectedCatalogue.value = undefined;
           }
           activeTab.value = cat;
         },
@@ -155,5 +215,10 @@
   .vcs-badge {
     top: 4px;
     right: 2px;
+  }
+  .toggle-button {
+    :deep(.v-icon) {
+      font-size: 24px !important;
+    }
   }
 </style>

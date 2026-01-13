@@ -1,150 +1,155 @@
 <template>
-  <span class="py-1">
+  <span class="py-1 d-flex flex-column" style="max-height: 100%">
     <v-row
       no-gutters
       class="font-weight-black d-flex justify-center text-center py-1"
     >
       {{ dataset.title }}
     </v-row>
-
-    <v-row
-      v-if="dataset.source"
-      no-gutters
-      class="d-flex align-center justify-center gc-1"
-    >
-      <span class="text-truncate pr-1">
-        {{ $t('dynamicLayer.info.source') }}:
-        <span class="font-italic">
-          <a
-            v-if="dataset.source.url"
-            :href="dataset.source.url"
-            target="_blank"
-          >
-            {{ dataset.source.title }}
-          </a>
-          <span v-else class="text-decoration-underline">
-            {{ dataset.source.title }}
+    <div class="d-inline-block w-100 flex-grow-1 overflow-y-auto">
+      <v-row
+        v-if="dataset.source"
+        no-gutters
+        class="d-flex align-center justify-center gc-1"
+      >
+        <span class="text-truncate pr-1">
+          {{ $t('dynamicLayer.info.source') }}:
+          <span class="font-italic">
+            <a
+              v-if="dataset.source.url"
+              :href="dataset.source.url"
+              target="_blank"
+            >
+              {{ dataset.source.title }}
+            </a>
+            <span v-else class="text-decoration-underline">
+              {{ dataset.source.title }}
+            </span>
           </span>
         </span>
-      </span>
-    </v-row>
-    <v-row
-      v-if="dataset.publisher"
-      no-gutters
-      class="d-flex align-center justify-center gc-1"
-    >
-      <span class="text-truncate pr-1">
-        {{ $t('dynamicLayer.info.publisher') }}:
-        <span class="font-italic">
-          <a
-            v-if="dataset.publisher.url"
-            :href="dataset.publisher.url"
-            target="_blank"
-          >
-            {{ dataset.publisher.title }}
-          </a>
-          <span v-else class="text-decoration-underline">
-            {{ dataset.publisher.title }}
+      </v-row>
+      <v-row
+        v-if="dataset.publisher"
+        no-gutters
+        class="d-flex align-center justify-center gc-1"
+      >
+        <span class="text-truncate pr-1">
+          {{ $t('dynamicLayer.info.publisher') }}:
+          <span class="font-italic">
+            <a
+              v-if="dataset.publisher.url"
+              :href="dataset.publisher.url"
+              target="_blank"
+            >
+              {{ dataset.publisher.title }}
+            </a>
+            <span v-else class="text-decoration-underline">
+              {{ dataset.publisher.title }}
+            </span>
           </span>
         </span>
-      </span>
-    </v-row>
-    <v-row
-      v-if="dataset.owner"
-      no-gutters
-      class="d-flex align-center justify-center gc-1"
-    >
-      <span class="text-truncate pr-1">
-        {{ $t('dynamicLayer.info.owner') }}:
-        <span class="font-italic">
-          <a v-if="dataset.owner.url" :href="dataset.owner.url" target="_blank">
-            {{ dataset.owner.title }}
-          </a>
-          <span v-else class="text-decoration-underline">
-            {{ dataset.owner.title }}
+      </v-row>
+      <v-row
+        v-if="dataset.owner"
+        no-gutters
+        class="d-flex align-center justify-center gc-1"
+      >
+        <span class="text-truncate pr-1">
+          {{ $t('dynamicLayer.info.owner') }}:
+          <span class="font-italic">
+            <a
+              v-if="dataset.owner.url"
+              :href="dataset.owner.url"
+              target="_blank"
+            >
+              {{ dataset.owner.title }}
+            </a>
+            <span v-else class="text-decoration-underline">
+              {{ dataset.owner.title }}
+            </span>
           </span>
         </span>
-      </span>
-    </v-row>
-
-    <v-row no-gutters class="d-flex justify-center gc-4">
-      <span v-if="dataset.created">
-        <span class="text-decoration-underline">
-          {{ $t('dynamicLayer.info.created') }}:</span
-        >
-        <span class="font-italic">&nbsp;{{ dataset.created }}</span>
-      </span>
-      <span v-if="dataset.modified">
-        <span class="text-decoration-underline">
-          {{ $t('dynamicLayer.info.modified') }}:</span
-        >
-        <span class="font-italic">&nbsp;{{ dataset.modified }}</span>
-      </span>
-    </v-row>
-    <VcsFormSection heading="dynamicLayer.info.title" expandable start-open>
-      <v-row v-if="dataset.keywords?.length" no-gutters class="w-100 pt-1">
-        <v-chip
-          v-if="dataset.keywords.length > 3"
-          size="x-small"
-          color="primary"
-          variant="outlined"
-          class="ma-1"
-          @click="showAllKeywords = !showAllKeywords"
-          >{{
-            showAllKeywords
-              ? $t('dynamicLayer.actions.collapse')
-              : `${$t('dynamicLayer.common.show')} ${dataset.keywords.length} ${$t('dynamicLayer.common.more')}`
-          }}
-        </v-chip>
-        <v-chip
-          v-for="keyword in dataset.keywords.slice(
-            showAllKeywords ? undefined : -1,
-          )"
-          :key="keyword"
-          size="x-small"
-          color="primary"
-          class="ma-1"
-          >{{ keyword }}
-        </v-chip>
       </v-row>
 
-      <span v-if="dataset.description" class="w-100 pb-1">
+      <v-row no-gutters class="d-flex justify-center gc-4">
+        <span v-if="dataset.created">
+          <span class="text-decoration-underline">
+            {{ $t('dynamicLayer.info.created') }}:</span
+          >
+          <span class="font-italic">&nbsp;{{ dataset.created }}</span>
+        </span>
+        <span v-if="dataset.modified">
+          <span class="text-decoration-underline">
+            {{ $t('dynamicLayer.info.modified') }}:</span
+          >
+          <span class="font-italic">&nbsp;{{ dataset.modified }}</span>
+        </span>
+      </v-row>
+      <VcsFormSection heading="dynamicLayer.info.title" expandable start-open>
+        <v-row v-if="dataset.keywords?.length" no-gutters class="w-100 pt-1">
+          <v-chip
+            v-if="dataset.keywords.length > 3"
+            size="x-small"
+            color="primary"
+            variant="outlined"
+            class="ma-1"
+            @click="showAllKeywords = !showAllKeywords"
+            >{{
+              showAllKeywords
+                ? $t('dynamicLayer.actions.collapse')
+                : `${$t('dynamicLayer.common.show')} ${dataset.keywords.length} ${$t('dynamicLayer.common.more')}`
+            }}
+          </v-chip>
+          <v-chip
+            v-for="keyword in dataset.keywords.slice(
+              showAllKeywords ? undefined : -1,
+            )"
+            :key="keyword"
+            size="x-small"
+            color="primary"
+            class="ma-1"
+            >{{ keyword }}
+          </v-chip>
+        </v-row>
+
+        <span v-if="dataset.description" class="w-100 pb-1">
+          <v-row no-gutters>
+            <VcsLabel html-for="description" class="font-weight-bold">{{
+              $t('dynamicLayer.common.description')
+            }}</VcsLabel>
+          </v-row>
+          <v-row no-gutters class="px-2">
+            {{ dataset.description }}
+          </v-row>
+        </span>
+      </VcsFormSection>
+
+      <VcsFormSection
+        :heading="`${$t('dynamicLayer.info.distributions')} (${distributions.length})`"
+        expandable
+        start-open
+      >
         <v-row no-gutters>
-          <VcsLabel html-for="description" class="font-weight-bold">{{
-            $t('dynamicLayer.common.description')
-          }}</VcsLabel>
+          <span v-if="!distributions.length">
+            {{ $t('dynamicLayer.catalogues.noDistributionAvailable') }}
+          </span>
+          <VcsDataTable
+            v-else
+            v-model:expanded="expandedDistributionIds"
+            class="w-100"
+            :items="distributions"
+            :headers="headers"
+            :items-per-page="distributions.length"
+            show-expand
+            expand-on-click
+          >
+            <template #expanded-row="{ columns, item }">
+              <DistributionDetails :columns="columns" :distribution="item" />
+            </template>
+          </VcsDataTable>
         </v-row>
-        <v-row no-gutters class="px-2">
-          {{ dataset.description }}
-        </v-row>
-      </span>
-    </VcsFormSection>
-
-    <VcsFormSection
-      :heading="`${$t('dynamicLayer.info.distributions')} (${distributions.length})`"
-      expandable
-      start-open
-    >
-      <v-row no-gutters>
-        <span v-if="!distributions.length">
-          {{ $t('dynamicLayer.catalogues.noDistributionAvailable') }}
-        </span>
-        <VcsDataTable
-          v-else
-          v-model:expanded="expandedDistributionIds"
-          class="w-100"
-          :items="distributions"
-          :headers="headers"
-          :items-per-page="distributions.length"
-          show-expand
-          expand-on-click
-        >
-          <template #expanded-row="{ columns, item }">
-            <DistributionDetails :columns="columns" :distribution="item" />
-          </template>
-        </VcsDataTable>
-      </v-row>
-    </VcsFormSection>
+      </VcsFormSection>
+    </div>
   </span>
 </template>
 

@@ -1,3 +1,7 @@
+# v2.0.3
+
+- Redesigned the UI for small screens: the sidebar is now collapsible
+
 # v2.0.2
 
 - Fixed a bug where catalogues descritpion would not be translated when using a user-defined i18n key

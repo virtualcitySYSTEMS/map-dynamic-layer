@@ -1,6 +1,6 @@
 <template>
-  <v-row no-gutters class="h-100">
-    <v-col cols="4" class="h-100">
+  <DynamicColumns>
+    <template #left>
       <v-row no-gutters>
         <v-col cols="10">
           <VcsTreeviewSearchbar v-model="search" />
@@ -19,7 +19,7 @@
             icon="$vcsPlus"
             tooltip="dynamicLayer.actions.source.addNew"
             :active="!selected"
-            @click="selected = undefined"
+            @click="addNewSource"
           />
         </v-col>
       </v-row>
@@ -39,9 +39,8 @@
           </template>
         </VcsTreeview>
       </v-row>
-    </v-col>
-    <v-divider vertical />
-    <v-col cols="8" class="h-100">
+    </template>
+    <template #right>
       <span v-if="selected" class="h-100">
         <WebdataInformations
           :key="selected.name"
@@ -158,8 +157,8 @@
           </v-card>
         </v-col>
       </v-row>
-    </v-col>
-  </v-row>
+    </template>
+  </DynamicColumns>
 </template>
 
 <script lang="ts">
@@ -204,6 +203,7 @@
     removeSource,
   } from './webdataActionsHelper.js';
   import WebdataInformations from './WebdataInformations.vue';
+  import DynamicColumns from '../DynamicColumns.vue';
 
   export default defineComponent({
     name: 'WebdataWindow',
@@ -221,6 +221,7 @@
       VcsSelect,
       VcsTextField,
       VcsTreeview,
+      DynamicColumns,
       DlTreeviewTitle,
       VcsTreeviewSearchbar,
       WebdataInformations,
@@ -228,6 +229,7 @@
     setup() {
       const app = inject('vcsApp') as VcsUiApp;
       const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
+      const { leftPanelActive } = plugin;
       const { added, selected, opened } = plugin.webdata;
 
       const search = ref('');
@@ -265,9 +267,14 @@
         addNested: addAllNestedLayersFromItem.bind(null, app),
         removeLayer: removeLayer.bind(null, app),
         removeSource: removeSource.bind(null, app),
+        addNewSource(): void {
+          selected.value = undefined;
+          leftPanelActive[CategoryType.WEBDATA] = false;
+        },
         editParameters(item: DataItem): void {
           plugin.activeTab.value = CategoryType.ADDED;
           plugin.addedSelected.value = item;
+          plugin.leftPanelActive[CategoryType.ADDED] = false;
         },
         filter(array: Array<DataItem>): Array<DataItem> {
           return filterItemChildren(array, (i) => !!i.isAddedToMap);
@@ -325,6 +332,7 @@
             selected.value = item;
             opened.value = [item.name];
             added.value.push(item);
+            plugin.leftPanelActive[CategoryType.WEBDATA] = true;
           } catch (error) {
             app.notifier.add({
               type: NotificationType.ERROR,

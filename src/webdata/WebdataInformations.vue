@@ -49,9 +49,11 @@
   }
   .subtitle {
     font-style: italic;
-    display: flex;
-    justify-content: center;
+    text-align: center;
+    display: block;
     padding-bottom: 1px;
+    padding-left: 4px;
+    padding-right: 4px;
     white-space: nowrap !important;
     overflow: hidden !important;
     text-overflow: ellipsis !important;

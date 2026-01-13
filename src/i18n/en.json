@@ -125,6 +125,7 @@
       "open": "Open",
       "overview": "Overview",
       "remove": "Remove",
+      "toggleDatasetList": "Toggle dataset list",
       "zoomToExtent": "Zoom to extent",
       "filter": {
         "showAddedOnly": "Show only added layers",

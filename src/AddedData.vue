@@ -1,6 +1,6 @@
 <template>
-  <v-row no-gutters class="h-100">
-    <v-col cols="4" class="h-100">
+  <DynamicColumns>
+    <template #left>
       <VcsGroupedList
         v-model="localSelected"
         class="list h-100"
@@ -10,11 +10,8 @@
         selectable
         open-all
       />
-    </v-col>
-
-    <v-divider vertical style="z-index: 1" />
-
-    <v-col cols="8" class="h-100">
+    </template>
+    <template #right>
       <span
         v-if="!addedSelected"
         class="d-flex w-100 py-1 justify-center font-weight-bold"
@@ -45,31 +42,33 @@
           </span>
         </v-row>
       </v-row>
-    </v-col>
-  </v-row>
+    </template>
+  </DynamicColumns>
 </template>
 
 <script lang="ts">
   import type { VcsGroupedListItem, VcsUiApp } from '@vcmap/ui';
   import { VcsFormButton, VcsGroupedList } from '@vcmap/ui';
   import { computed, defineComponent, inject, reactive, ref, watch } from 'vue';
-  import { VCol, VDivider, VRow } from 'vuetify/components';
+  import { VDivider, VRow } from 'vuetify/components';
+  import { name } from '../package.json';
   import type { DynamicLayerPlugin } from './index.js';
+  import { createContentTreeName } from './helper.js';
   import WebdataParameters from './webdata/WebdataParameters.vue';
   import WebdataInformations from './webdata/WebdataInformations.vue';
-  import { createContentTreeName } from './helper.js';
   import { removeLayer } from './webdata/webdataActionsHelper.js';
-  import { name } from '../package.json';
+  import type { DataItem } from './webdata/webdataConstants.js';
   import { CategoryType } from './constants.js';
+  import DynamicColumns from './DynamicColumns.vue';
 
   export default defineComponent({
     name: 'AddedData',
     components: {
-      VCol,
       VDivider,
       VRow,
       VcsFormButton,
       VcsGroupedList,
+      DynamicColumns,
       WebdataParameters,
       WebdataInformations,
     },
@@ -90,6 +89,8 @@
       watch(localItems, () => {
         if (localItems.value.length === 0) {
           plugin.activeTab.value = plugin.config.defaultTab;
+        } else if (localItems.value.length === 1 && !addedSelected.value) {
+          addedSelected.value = addedToMap.value[0];
         }
       });
 
@@ -170,7 +171,10 @@
         localItems,
         addedSelected,
         localSelected,
-        removeLayer: removeLayer.bind(null, app),
+        removeLayer(toRemove: DataItem): void {
+          removeLayer(app, toRemove);
+          plugin.leftPanelActive[CategoryType.ADDED] = true;
+        },
         rename(title: string): void {
           const layerName = addedSelected.value!.name;
           const layer = app.layers.getByKey(layerName)!;

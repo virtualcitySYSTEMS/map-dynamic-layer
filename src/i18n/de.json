@@ -125,6 +125,7 @@
       "overview": "Übersicht",
       "remove": "Entfernen",
       "rename": "Umbenennen",
+      "toggleDatasetList": "Toggle dataset list",
       "zoomToExtent": "Zoom zur Ausdehnung",
       "filter": {
         "showAddedOnly": "Nur hinzugefügte Ebenen anzeigen",

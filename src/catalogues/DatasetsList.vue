@@ -98,12 +98,14 @@
     VcsTreeviewSearchbar,
     type VcsListItem,
     type VcsUiApp,
+    useProxiedComplexModel,
   } from '@vcmap/ui';
+  import { name } from '../../package.json';
   import type { DynamicLayerPlugin } from '../index.js';
-  import type { CatalogueItem } from './catalogues.js';
+  import { CategoryType } from '../constants.js';
+  import type { CatalogueItem, Dataset } from './catalogues.js';
   import { fetchCatalogue, sortOptions } from './catalogues.js';
   import CatalogueFilter from './CataloguesFilter.vue';
-  import { name } from '../../package.json';
 
   /** Maps Datasets to VcsListItems */
   function createDatasetsList(
@@ -134,14 +136,25 @@
         type: Object as PropType<CatalogueItem>,
         required: true,
       },
+      modelValue: {
+        type: Object as PropType<Dataset | undefined>,
+        default: undefined,
+      },
     },
-    emits: ['select'],
+    emits: ['update:modelValue'],
     setup(props, { emit }) {
       const app = inject('vcsApp') as VcsUiApp;
       const plugin = app.plugins.getByKey(name) as DynamicLayerPlugin;
       const { locale } = app;
       const { itemsPerPage } = plugin.config.catalogues;
       const data = ref(props.source.data);
+      const localModel = useProxiedComplexModel<Dataset | undefined>(
+        props,
+        'modelValue',
+        (_event: string, value: Dataset | undefined) => {
+          emit('update:modelValue', value);
+        },
+      );
 
       const search = ref('');
       const searchLoading = ref(false);
@@ -164,12 +177,18 @@
       const page = ref(1);
       const showDatasetDescription = ref(true);
       const arraySelected = computed({
-        get: () => [],
+        get: () =>
+          localModel.value
+            ? [datasets.value.find((d) => d.name === localModel.value?.id)!]
+            : [],
         set(value?: Array<VcsListItem>) {
           const selection = value?.[0]
             ? data.value.datasets.find((i) => i.id === value[0].name)
             : undefined;
-          emit('select', selection);
+          localModel.value = selection;
+          if (value?.length && showDatasetDescription.value) {
+            plugin.leftPanelActive[CategoryType.CATALOGUES] = false;
+          }
         },
       });
 
@@ -279,13 +298,15 @@
       position: absolute;
       left: 0px;
     }
+    li.v-pagination__item:nth-child(2) {
+      margin-left: auto !important;
+    }
     .v-pagination__item > button {
       width: fit-content;
       min-width: 28px;
     }
     .v-pagination__next {
-      position: absolute;
-      right: 58.5%;
+      margin-left: auto;
     }
   }
 </style>

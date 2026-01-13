@@ -55,12 +55,15 @@
     </v-row>
 
     <!-- CATALOGUE -->
-    <v-row v-else :key="selectedCatalogue.url" no-gutters class="h-100">
-      <v-col cols="5" class="h-100">
-        <DatasetsList :source="selectedCatalogue" @select="selectDataset" />
-      </v-col>
-      <v-divider vertical />
-      <v-col cols="7" class="max-height overflow-y-auto">
+    <DynamicColumns v-else :left-cols="5">
+      <template #left>
+        <DatasetsList
+          :key="selectedCatalogue.url"
+          v-model="selectedDataset"
+          :source="selectedCatalogue"
+        />
+      </template>
+      <template #right>
         <DatasetDetails
           v-if="selectedDataset"
           :key="selectedDataset.id"
@@ -70,35 +73,30 @@
         />
         <VcsMarkdown
           v-else
-          class="pa-1"
+          class="pa-1 max-height overflow-y-auto"
           :content="
             selectedCatalogue.description
               ? $t(selectedCatalogue.description)
               : $t('dynamicLayer.catalogues.defaultMarkdownDescription')
           "
         />
-      </v-col>
-    </v-row>
+      </template>
+    </DynamicColumns>
   </v-container>
 </template>
 
 <script lang="ts">
   import { defineComponent, inject, ref, watch } from 'vue';
   import { VcsFormButton, VcsMarkdown, type VcsUiApp } from '@vcmap/ui';
-  import {
-    VCard,
-    VCardText,
-    VCol,
-    VContainer,
-    VDivider,
-    VRow,
-  } from 'vuetify/components';
+  import { VCard, VCardText, VCol, VContainer, VRow } from 'vuetify/components';
+  import { name } from '../../package.json';
   import type { DynamicLayerPlugin } from '../index.js';
-  import type { CatalogueItem, Dataset } from './catalogues.js';
+  import { CategoryType } from '../constants.js';
+  import DynamicColumns from '../DynamicColumns.vue';
+  import type { CatalogueItem } from './catalogues.js';
   import { CataloguesTypes, getCatalogueIcon } from './catalogues.js';
   import DatasetsList from './DatasetsList.vue';
   import DatasetDetails from './DatasetDetails.vue';
-  import { name } from '../../package.json';
 
   export default defineComponent({
     name: 'CataloguesWindow',
@@ -107,10 +105,10 @@
       VCardText,
       VCol,
       VContainer,
-      VDivider,
       VRow,
       VcsFormButton,
       VcsMarkdown,
+      DynamicColumns,
       DatasetsList,
       DatasetDetails,
     },
@@ -130,6 +128,7 @@
 
       watch(selectedCatalogue, () => {
         selectedDataset.value = undefined;
+        plugin.leftPanelActive[CategoryType.CATALOGUES] = true;
       });
 
       return {
@@ -141,9 +140,6 @@
         showDatasetDescription,
         getLogo(catalogue: CatalogueItem): string {
           return catalogue.logo ?? getCatalogueIcon(app, catalogue.type);
-        },
-        selectDataset: (dataset: Dataset | undefined): void => {
-          selectedDataset.value = dataset;
         },
       };
     },
