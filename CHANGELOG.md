@@ -1,3 +1,7 @@
+# v3.0.0
+
+- Updated @vcmap/core and @vcmap/ui to versions 6.3
+
 # v2.0.3
 
 - Redesigned the UI for small screens: the sidebar is now collapsible
