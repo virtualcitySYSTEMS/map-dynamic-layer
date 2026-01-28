@@ -103,11 +103,9 @@ function parseRegistryDataset(data: RegistryDataset): Dataset | undefined {
         id: data.data.id.toString(),
         title: data.data.title,
         type: 'feature',
-        feature: new Feature({
-          geometry: new Point([
-            data.data.geoLocation.longitude,
-            data.data.geoLocation.latitude,
-          ]),
+        featureProperties: {
+          longitude: data.data.geoLocation.longitude,
+          latitude: data.data.geoLocation.latitude,
           id: data.data.id,
           geoLocation: data.data.geoLocation,
           areaCharacterization: data.data.areaCharacterization,
@@ -129,7 +127,7 @@ function parseRegistryDataset(data: RegistryDataset): Dataset | undefined {
           videos: data.data.videos,
           idraDatasets: data.data.idraDatasets,
           kpis: data.data.kpis,
-        }),
+        },
       },
     ],
   };
@@ -167,16 +165,16 @@ export async function fetchRegistry(
     (acc, key) => {
       const facetKey = `${key.slice(0, -3)}s`;
       if (filter[facetKey]) {
-        (acc as Record<NBSCritera, string>)[key] = filter[facetKey];
+        (acc as Record<NBSCritera, string[]>)[key] = [filter[facetKey]];
       }
       return acc;
     },
     {
-      [NBSCritera.CLIMATE_ZONES]: '',
-      [NBSCritera.PILOTS]: '',
-      [NBSCritera.KEYWORD_IDS]: '',
-      [NBSCritera.PROBLEM_IDS]: '',
-    } satisfies Record<NBSCritera, string>,
+      [NBSCritera.CLIMATE_ZONES]: [],
+      [NBSCritera.PILOTS]: [],
+      [NBSCritera.KEYWORD_IDS]: [],
+      [NBSCritera.PROBLEM_IDS]: [],
+    } satisfies Record<NBSCritera, string[]>,
   );
   const body = JSON.stringify({ ...criteria, onlyUrbreathNbs: false });
   const options = {
@@ -282,14 +280,21 @@ export function addNBSToMap(app: VcsUiApp, item: Distribution): void {
     );
     app.contentTree.add(contentTreeItem);
   }
-  item.feature!.setStyle(
+  const feature = new Feature({
+    geometry: new Point([
+      item.featureProperties!.longitude as number,
+      item.featureProperties!.latitude as number,
+    ]),
+    ...item.featureProperties,
+  });
+  feature.setStyle(
     new Style(
       new VectorStyleItem({
         image: { src: getCatalogueIcon(app, CataloguesTypes.NBS), scale: 0.05 },
       }),
     ),
   );
-  layer.addFeatures([item.feature!]);
+  layer.addFeatures([feature]);
   app.notifier.add({
     type: NotificationType.SUCCESS,
     message: app.vueI18n.t('dynamicLayer.catalogues.nbsAddedToMap'),

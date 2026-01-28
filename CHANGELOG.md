@@ -1,10 +1,8 @@
 # v3.0.0
 
 - Updated @vcmap/core and @vcmap/ui to versions 6.3
-
-# v2.0.3
-
 - Redesigned the UI for small screens: the sidebar is now collapsible
+- Fixed an bug in fetching and accessing NBS Registries
 
 # v2.0.2
 

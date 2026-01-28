@@ -2,7 +2,6 @@ import { Viewpoint } from '@vcmap/core';
 import type { VcsUiApp } from '@vcmap/ui';
 import { NotificationType, getPluginAssetUrl } from '@vcmap/ui';
 import { getLogger } from '@vcsuite/logger';
-import type Feature from 'ol/Feature.js';
 import {
   addLayerFromItem,
   ActionsNames,
@@ -40,7 +39,7 @@ export type Distribution = {
   description?: string;
   accessUrl?: string;
   downloadUrl?: string;
-  feature?: Feature;
+  featureProperties?: Record<string, unknown>;
   created?: string;
   modified?: string;
   format?: string;

@@ -72,7 +72,7 @@
             </v-card>
           </v-dialog>
         </span>
-        <span v-else-if="distribution.feature">
+        <span v-else-if="distribution.featureProperties">
           <VcsFormButton
             variant="filled"
             :loading="loading"
