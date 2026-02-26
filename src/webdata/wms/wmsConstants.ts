@@ -56,6 +56,7 @@ export type WmsLayer = {
   EX_GeographicBoundingBox: Array<number>;
   KeywordList: Array<string>;
   queryable: boolean;
+  opaque: boolean;
 };
 
 /** Raw capabilities obtained from a WMS webserver. */

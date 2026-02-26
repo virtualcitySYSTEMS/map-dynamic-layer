@@ -1,9 +1,8 @@
 import { type VcsUiApp } from '@vcmap/ui';
-import { Extent, WFSLayer } from '@vcmap/core';
+import { Extent, getInitForUrl, WFSLayer } from '@vcmap/core';
 import type { Reactive } from 'vue';
 import { reactive, toRaw } from 'vue';
 import WFSCapabilities from 'ol-wfs-capabilities';
-import { getInitForUrl } from '../../helper.js';
 import {
   parseWebdataUrl,
   appendQueryParamsToUrl,

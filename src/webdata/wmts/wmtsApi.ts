@@ -1,9 +1,8 @@
 import { type VcsUiApp } from '@vcmap/ui';
-import { Extent, WMTSLayer } from '@vcmap/core';
+import { Extent, getInitForUrl, WMTSLayer } from '@vcmap/core';
 import type { Reactive } from 'vue';
 import { reactive, toRaw } from 'vue';
 import WMTSCapabilities from 'ol/format/WMTSCapabilities.js';
-import { getInitForUrl } from '../../helper.js';
 import type { DataItem } from '../webdataConstants.js';
 import { WebdataTypes } from '../webdataConstants.js';
 import { getTreeviewDefaultActions } from '../webdataActionsHelper.js';

@@ -98,7 +98,7 @@
             : [
                 reactive({
                   icon: 'mdi-close',
-                  tooltip: 'dynamicLayer.actions.cancel',
+                  title: 'dynamicLayer.actions.cancel',
                   disabled: !hasUpdate.value,
                   callback: async (): Promise<void> => {
                     title.value = props.item.title;
@@ -110,7 +110,7 @@
                 }),
                 reactive({
                   icon: 'mdi-content-save-edit-outline',
-                  tooltip: 'dynamicLayer.actions.apply',
+                  title: 'dynamicLayer.actions.apply',
                   disabled: !hasUpdate.value,
                   callback: (): void => {
                     if (titleHasUpdate.value) {

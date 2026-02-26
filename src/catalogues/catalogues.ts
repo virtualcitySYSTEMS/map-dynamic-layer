@@ -2,6 +2,7 @@ import { Viewpoint } from '@vcmap/core';
 import type { VcsUiApp } from '@vcmap/ui';
 import { NotificationType, getPluginAssetUrl } from '@vcmap/ui';
 import { getLogger } from '@vcsuite/logger';
+import { check } from '@vcsuite/check';
 import {
   addLayerFromItem,
   ActionsNames,
@@ -93,54 +94,101 @@ export const sortOptions: Record<CataloguesTypes, Array<string>> = {
   [CataloguesTypes.NBS]: [],
 };
 
-/**
- * Fetches a catalogue based on the provided parameters.
- * @param item - A partial object of type `CatalogueItem` containing the item details.
- * @param itemsPerPage - The number of items to fetch per page.
- * @param filter - An optional filter string to apply when fetching the catalogue.
- * @param locale - The locale to use for fetching the catalogue. Defaults to 'en'.
- * @param page - The page number to fetch. Defaults to 0.
- * @param query - The search query string. Defaults to an empty string.
- * @param sortBy - The sorting mode to use. Defaults to `Sorting.relevance`.
- * @param facets - An object containing facet filters. Defaults to an empty object.
- * @returns A promise that resolves to either a `PiveauResult` or an `IdraResult`.
- */
+const catalogueUrlsPath: Record<CataloguesTypes, string> = {
+  [CataloguesTypes.PIVEAU]: 'api/hub/search',
+  [CataloguesTypes.IDRA]: 'api/v1/client',
+  [CataloguesTypes.GEONETWORK]: 'geonetwork/srv/api/search/records/_search',
+  [CataloguesTypes.NBS]: 'api',
+};
+
+export function enforceCatalogueUrl(
+  rawUrl: string,
+  type: CataloguesTypes,
+): URL {
+  const url = new URL(rawUrl);
+  const requiredPaths = catalogueUrlsPath[type].split('/').filter(Boolean);
+  const fullRequiredPath = requiredPaths.join('/');
+
+  let pathname = url.pathname.replace(/\/$/, '');
+  let matchingSegments = 0;
+  for (let i = requiredPaths.length; i > 0; i--) {
+    const prefix = requiredPaths.slice(0, i).join('/');
+    if (pathname.includes(`/${prefix}`) || pathname === `/${prefix}`) {
+      matchingSegments = i;
+      break;
+    }
+  }
+  if (matchingSegments > 0) {
+    const existingPrefix = requiredPaths.slice(0, matchingSegments).join('/');
+    const idx = pathname.lastIndexOf(`/${existingPrefix}`);
+    if (idx !== -1) {
+      pathname = pathname.slice(0, idx);
+    }
+  }
+
+  url.pathname = `${pathname ? `${pathname}/` : '/'}${fullRequiredPath}`;
+  return url;
+}
+
+export type CatalogueOptions = {
+  type: CataloguesTypes;
+  url: string;
+  itemsPerPage: number;
+  filter: Record<string, string>;
+  sortBy: string;
+  locale: string;
+  page: number;
+  query: string;
+  facets: Record<string, string>;
+  aggregationKeys?: string[];
+};
+
+export function getDefaultSortingOption(type: CataloguesTypes): string {
+  switch (type) {
+    case CataloguesTypes.IDRA:
+      return IdraSortingOptions.nameAsc;
+    case CataloguesTypes.PIVEAU:
+      return PiveauSortingOptions.relevance;
+    case CataloguesTypes.GEONETWORK:
+      return GeoNetworkSortingOptions.relevance;
+    default:
+      return '';
+  }
+}
+
+function mergeCatalogueOptions(
+  options: Partial<CatalogueOptions>,
+): CatalogueOptions {
+  return {
+    type: options.type!,
+    url: options.url!,
+    itemsPerPage: options.itemsPerPage ?? 14,
+    filter: options.filter ?? {},
+    sortBy: options.sortBy ?? getDefaultSortingOption(options.type!),
+    locale: options.locale ?? 'en',
+    page: options.page ?? 0,
+    query: options.query ?? '',
+    facets: options.facets ?? {},
+    aggregationKeys: options.aggregationKeys,
+  };
+}
+
 export async function fetchCatalogue(
-  catalogueType: CataloguesTypes,
-  url: string,
-  itemsPerPage: number,
-  filter?: Record<string, string>,
-  sortBy = 'relevance',
-  locale = 'en',
-  page = 0,
-  query = '',
-  facets: Record<string, string> = {},
+  rawOptions: Partial<CatalogueOptions>,
 ): Promise<CatalogueData | undefined> {
-  if (catalogueType === CataloguesTypes.PIVEAU) {
-    return fetchPiveau(
-      url,
-      itemsPerPage,
-      page,
-      query,
-      sortBy,
-      facets,
-      locale,
-      filter,
-    );
-  } else if (catalogueType === CataloguesTypes.NBS) {
-    return fetchRegistry(url, itemsPerPage, page, facets);
-  } else if (catalogueType === CataloguesTypes.IDRA) {
-    return fetchIdra(url, itemsPerPage, page, query, sortBy, facets);
-  } else {
-    return fetchGeoNetwork(
-      url,
-      itemsPerPage,
-      page,
-      query,
-      sortBy,
-      facets,
-      filter,
-    );
+  check(rawOptions, { type: String, url: String });
+  const options = mergeCatalogueOptions(rawOptions);
+  switch (options.type) {
+    case CataloguesTypes.GEONETWORK:
+      return fetchGeoNetwork(options);
+    case CataloguesTypes.IDRA:
+      return fetchIdra(options);
+    case CataloguesTypes.NBS:
+      return fetchRegistry(options);
+    case CataloguesTypes.PIVEAU:
+      return fetchPiveau(options);
+    default:
+      throw new Error('Unsupported catalogue type');
   }
 }
 
@@ -236,17 +284,11 @@ export async function addDistributionToMap(
 /**
  * Finds the icon URL of a catalogue.
  * @param app The VcsUiApp.
- * @param catalogueType The type of Catalogue to get an icon for.
+ * @param type The type of Catalogue to get an icon for.
  * @returns The source URL of the icon.
  */
-export function getCatalogueIcon(
-  app: VcsUiApp,
-  catalogueType: CataloguesTypes,
-): string {
-  return (
-    getPluginAssetUrl(app, name, `plugin-assets/${catalogueType}_logo.png`) ??
-    ''
-  );
+export function getCatalogueIcon(app: VcsUiApp, type: CataloguesTypes): string {
+  return getPluginAssetUrl(app, name, `plugin-assets/${type}_logo.png`) ?? '';
 }
 
 /**
@@ -268,13 +310,6 @@ export function getLocalizedValue(
     return el;
   }
   return el[locale] ?? el.en ?? Object.values(el)[0];
-}
-
-export function removeLastSlash(url: string): string {
-  if (url.slice(-1) === '/') {
-    return url.slice(0, -1);
-  }
-  return url;
 }
 
 export function camelCaseToWords(str: string): string {

@@ -15,10 +15,15 @@ import { name } from '../../package.json';
 import {
   camelCaseToWords,
   CataloguesTypes,
+  enforceCatalogueUrl,
   getCatalogueIcon,
-  removeLastSlash,
 } from './catalogues.js';
-import type { CatalogueData, Dataset, Distribution } from './catalogues.js';
+import type {
+  CatalogueData,
+  CatalogueOptions,
+  Dataset,
+  Distribution,
+} from './catalogues.js';
 
 enum NBSCritera {
   CLIMATE_ZONES = 'climateZoneIds',
@@ -78,14 +83,6 @@ type RegistryDataset = Basic<{
   videos: [];
 }>;
 
-export enum RegistrySortingOptions {
-  relevance = 'relevance+desc',
-  nameAsc = 'title.$locale$+asc',
-  nameDesc = 'title.$locale$+desc',
-  lastModified = 'modified+desc',
-  lastCreated = 'issued+desc',
-}
-
 function parseRegistryDataset(data: RegistryDataset): Dataset | undefined {
   if (!data.data?.id) {
     return undefined;
@@ -140,14 +137,15 @@ export async function fetchRegistryDataset(
   catalogueUrl: string,
   nbsId: string,
 ): Promise<Dataset | undefined> {
-  const url = new URL(`${removeLastSlash(catalogueUrl)}/api/nbs/${nbsId}`);
-  const options = {
+  const url = enforceCatalogueUrl(catalogueUrl, CataloguesTypes.NBS);
+  url.pathname = `${url.pathname}/nbs/${nbsId}`;
+  const init: RequestInit = {
     method: 'GET',
     headers: { accept: 'application/json' },
     signal: AbortSignal.timeout(5000),
   };
 
-  return fetch(url, options)
+  return fetch(url, init)
     .then((res) => res.json())
     .then((data: RegistryDataset) => parseRegistryDataset(data));
 }
@@ -156,16 +154,13 @@ export async function fetchRegistryDataset(
  * Fetches a Registry catalogue and returns its response parsed.
  */
 export async function fetchRegistry(
-  catalogueUrl: string,
-  itemsPerPage: number,
-  page: number,
-  filter: Record<string, string>,
+  options: CatalogueOptions,
 ): Promise<CatalogueData> {
   const criteria = Object.values(NBSCritera).reduce(
     (acc, key) => {
       const facetKey = `${key.slice(0, -3)}s`;
-      if (filter[facetKey]) {
-        (acc as Record<NBSCritera, string[]>)[key] = [filter[facetKey]];
+      if (options.facets[facetKey]) {
+        (acc as Record<NBSCritera, string[]>)[key] = [options.facets[facetKey]];
       }
       return acc;
     },
@@ -176,16 +171,18 @@ export async function fetchRegistry(
       [NBSCritera.PROBLEM_IDS]: [],
     } satisfies Record<NBSCritera, string[]>,
   );
+
   const body = JSON.stringify({ ...criteria, onlyUrbreathNbs: false });
-  const options = {
+  const init: RequestInit = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body,
     signal: AbortSignal.timeout(30000),
   };
-  const url = `${removeLastSlash(catalogueUrl)}/api/nbs/map`;
+  const url = enforceCatalogueUrl(options.url, CataloguesTypes.NBS);
+  url.pathname = `${url.pathname}/nbs/map`;
 
-  return fetch(url, options)
+  return fetch(url, init)
     .then((res) => res.json())
     .then(async (data: RegistryResponse) => {
       if (!data.success) {
@@ -194,15 +191,19 @@ export async function fetchRegistry(
       const datasets = (
         await Promise.all(
           data.data.map(async (entry) =>
-            fetchRegistryDataset(catalogueUrl, entry.id.toString()),
+            fetchRegistryDataset(options.url, entry.id.toString()),
           ),
         )
       )
         .filter((d) => !!d)
-        .slice(page * itemsPerPage, (page + 1) * itemsPerPage);
-      const filters = await fetch(
-        `${removeLastSlash(catalogueUrl)}/api/filters/`,
-      )
+        .slice(
+          options.page * options.itemsPerPage,
+          (options.page + 1) * options.itemsPerPage,
+        );
+
+      const filterUrl = enforceCatalogueUrl(options.url, CataloguesTypes.NBS);
+      filterUrl.pathname = `${filterUrl.pathname}/filters/`;
+      const filters = await fetch(filterUrl)
         .then((res) => res.json() as Promise<RegistryFilter>)
         .catch((error: unknown) => {
           getLogger(name).error(

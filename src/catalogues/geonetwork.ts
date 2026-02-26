@@ -1,235 +1,265 @@
 import { v4 as uuid } from 'uuid';
-import type { CatalogueData, Dataset, Distribution } from './catalogues.js';
+import type {
+  CatalogueData,
+  CatalogueOptions,
+  Dataset,
+  Distribution,
+} from './catalogues.js';
 import {
   camelCaseToWords,
+  CataloguesTypes,
+  enforceCatalogueUrl,
   getDistributionType,
-  removeLastSlash,
 } from './catalogues.js';
 
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/naming-convention */
+
+type GeonetworkDistribution = {
+  descriptionObject: { default: string };
+  mimeType: string;
+  urlObject: { default: string };
+  hash: string;
+  /*
+  protocol: string;
+  function: string;
+  applicationProfile: string;
+  idx: number;
+  group: number;
+  */
+};
+
+type AggregationBucket = {
+  key: string;
+  doc_count: number;
+};
+
+type TermsAggregation = {
+  buckets?: AggregationBucket[];
+  doc_count_error_upper_bound?: number;
+  sum_other_doc_count?: number;
+  meta?: { field: string };
+};
 
 /** GeoNetwork API types of a dataset. */
 type GeoNetworkDataset = {
-  title: string;
-  abstract: string;
-  responsibleParty: string[];
-  validInspire: string;
-  type: string;
-  resolution: string;
-  legalConstraints: string;
-  isHarvested: string;
-  displayOrder: string;
-  docLocale: string;
-  popularity: string;
-  publishedForGroup: string;
-  valid_xsd: string;
-  identifier: string;
-  image: string;
-  tempExtentBegin: string;
-  mdLanguage: string;
-  crsDetails: { code: string; codeSpace: string; name: string; url: string };
-  spatialRepresentationType_text: string;
-  mdStatus: string;
-  root: string;
-  isTemplate: string;
-  valid: string;
-  tempExtentEnd: Date;
-  rating: string;
-  source: string;
-  category: string[];
-  status: string;
-  geoBox: string;
-  owner: string;
-  recordOwner: string;
-  defaultAbstract: string;
-  link: string | string[];
-  defaultTitle: string;
-  datasetLang: string;
-  userinfo: string;
-  topicCat: string;
-  tempExtentPeriod: string;
-  publicationDate: Date;
-  status_text: string;
-  standardName: string;
-  crs: string;
-  logo: string;
-  draft: string;
-  keyword: string[] | string;
-  keywordGroup: Record<string, Array<{ value: string; link: string }>>;
-  groupOwner: string;
-  _locale: string;
-  'geonet:info': {
-    '@xmlns:geonet': string;
-    id: string;
-    uuid: string;
-    schema: string;
-    createDate: Date;
-    changeDate: Date;
-    source: string;
-    isPublishedToAll: string;
-    view: string;
-    notify: string;
-    download: string;
-    dynamic: string;
-    featured: string;
-    selected: string;
+  _id: string;
+  _source: {
+    resourceTitleObject: { default: string };
+    resourceDate: Array<{ type: string; date: string }>;
+    resourceAbstractObject: { default: string };
+    contactForResource: Array<{
+      organisationObject: { default: string };
+      website: string;
+    }>;
+    tag: Array<{ default: string; key?: string }>;
+    link: Array<GeonetworkDistribution>;
+    recordOwner: string;
+    // And other properites not used, so not typed
   };
-};
-
-type CategoryEntry = {
-  '@count': string;
-  '@label': string;
-  '@value': string;
+  /*
+  _index: string;
+  _score: number;
+  _type: string;
+  edit: boolean;
+  canReview: boolean;
+  owner: boolean;
+  isPublishedToAll: boolean;
+  view: boolean;
+  notify: boolean;
+  download: boolean;
+  dynamic: boolean;
+  featured: boolean;
+  selected: boolean;
+  */
 };
 
 type GeoNetworkResponse = {
-  // '@from': string; '@maxPageSize': string; '@selected': string; '@to': string;
-  metadata: Array<GeoNetworkDataset> | GeoNetworkDataset;
-  summary: {
-    // '@type': string;
-    '@count': string;
-    dimension: Array<{
-      '@label': string;
-      '@name': string;
-      category?: Array<CategoryEntry> | CategoryEntry;
-    }>;
+  took: number;
+  timed_out: boolean;
+  _shards: {
+    total: number;
+    successful: number;
+    skipped: number;
+    failed: number;
   };
+  hits: {
+    max_score: number;
+    total: {
+      value: number;
+      relation: string;
+    };
+    hits: Array<GeoNetworkDataset>;
+  };
+  aggregations?: Record<string, TermsAggregation>;
 };
 
 export enum GeoNetworkSortingOptions {
   relevance = 'relevance',
-  lastModified = 'changeDate',
-  nameAsc = 'title',
   rating = 'rating',
   popularity = 'popularity',
-  lowScaleFirst = 'denominatorDesc',
-  highScaleFirst = 'denominatorAsc',
+  lastModified = 'dateStamp',
+  lastCreated = 'createDate',
+  nameAsc = 'resourceTitleObject.default.sort',
 }
 
-function parseGeoNetworkDistribution(data: string): Distribution {
-  const rawDistribution = data.split('|');
-  let title = rawDistribution[0];
-  if (title && rawDistribution[1]) {
-    title += ` ${rawDistribution[1]}`;
-  } else if (rawDistribution[1]) {
-    title = rawDistribution[1];
-  } else if (!title) {
-    title = rawDistribution[2];
-  }
-  const type =
-    getDistributionType(rawDistribution[4]) ??
-    getDistributionType(rawDistribution[3]) ??
-    getDistributionType(rawDistribution[2]);
+function parseGeoNetworkDistribution(
+  data: GeonetworkDistribution,
+): Distribution {
+  const type = getDistributionType(data.urlObject.default);
 
   return {
-    id: uuid(),
-    title,
-    description: rawDistribution[1],
+    id: data.hash || uuid(),
+    title: data.hash,
+    description: data.descriptionObject?.default,
     type,
-    [rawDistribution[3].includes('link') ? 'downloadUrl' : 'accessUrl']:
-      rawDistribution[2],
-    format: (rawDistribution[3] || type?.slice(0, -5)) ?? rawDistribution[4],
+    [!type ? 'downloadUrl' : 'accessUrl']: data.urlObject.default,
+    format: data.mimeType || type?.slice(0, -5),
   };
 }
 
 function parseGeoNetworkDataset(data: GeoNetworkDataset): Dataset {
   const dataset: Dataset = {
-    id: data['geonet:info'].uuid,
-    title: data.title ?? data.defaultTitle ?? data.identifier,
-    description: data.abstract ?? data.defaultAbstract,
-    ...(data.recordOwner && { owner: { title: data.recordOwner } }),
+    id: data._id,
+    title: data._source.resourceTitleObject?.default,
+    description: data._source.resourceAbstractObject?.default,
   };
-  if (data.publicationDate) {
-    dataset.created = new Date(data.publicationDate).toDateString();
+  if (data._source.contactForResource?.[0]?.organisationObject?.default) {
+    dataset.source = {
+      title: data._source.contactForResource[0].organisationObject?.default,
+      ...(data._source.contactForResource[0].website
+        ? { url: data._source.contactForResource[0].website }
+        : {}),
+    };
   }
-  if (data['geonet:info']?.changeDate) {
-    dataset.modified = new Date(data['geonet:info'].changeDate).toDateString();
+  if (data._source.recordOwner) {
+    dataset.owner = {
+      title: data._source.recordOwner,
+    };
   }
-  if (data.keyword) {
-    dataset.keywords = Array.isArray(data.keyword)
-      ? data.keyword
-      : [data.keyword];
+  const creationDate = data._source.resourceDate?.find(
+    (d) => d.type === 'creation',
+  );
+  if (creationDate) {
+    dataset.created = new Date(creationDate.date).toDateString();
   }
-  if (data.link) {
+  const revisionDate = data._source.resourceDate?.find(
+    (d) => d.type === 'revision',
+  );
+  if (revisionDate && revisionDate !== creationDate) {
+    dataset.modified = new Date(revisionDate.date).toDateString();
+  }
+  if (data._source.tag?.length > 0) {
+    dataset.keywords = data._source.tag.map((t) => t.default);
+  }
+  if (data._source.link?.length > 0) {
     dataset.distributions = (
-      Array.isArray(data.link) ? data.link : [data.link]
+      Array.isArray(data._source.link) ? data._source.link : [data._source.link]
     ).map(parseGeoNetworkDistribution);
   }
   return dataset;
 }
 
 function parseGeoNetworkResponse(data: GeoNetworkResponse): CatalogueData {
-  const facets = data.summary.dimension
-    .filter(
-      (f) =>
-        f.category &&
-        (Array.isArray(f.category) ? f.category : [f.category]).length > 0,
-    )
-    .map((f) => ({
-      id: f['@name'],
-      title: camelCaseToWords(f['@label']),
-      values: (Array.isArray(f.category) ? f.category : [f.category])
-        .filter((v) => !!v)
-        .map((v) => ({
-          id: v['@value'],
-          title: `${v['@label']} (${v['@count']})`,
-        })),
-    }));
-  const datasets = Array.isArray(data.metadata)
-    ? data.metadata.map(parseGeoNetworkDataset)
-    : [parseGeoNetworkDataset(data.metadata)];
+  const facets = data.aggregations
+    ? Object.entries(data.aggregations)
+        .map(([key, agg]) => ({
+          id: key,
+          title: camelCaseToWords(key),
+          values: (agg.buckets || []).map((bucket) => ({
+            id: bucket.key,
+            title: `${bucket.key} (${bucket.doc_count})`,
+          })),
+        }))
+        .filter((f) => f.values.length > 0)
+    : [];
 
-  return { count: +data.summary['@count'], datasets, facets };
+  const datasets = Array.isArray(data.hits.hits)
+    ? data.hits.hits.map(parseGeoNetworkDataset)
+    : [parseGeoNetworkDataset(data.hits.hits)];
+
+  return { count: data.hits.total.value, datasets, facets };
 }
 
-// https://idecyl.jcyl.es/geonetwork/doc/en/api/q-search.html
-
-/**
- * Fetches a GeoNetwork Catalogue.
- * @param catalogueUrl The URl of the GeoNetwork Catalogue to fetch.
- * @param itemsPerPage The number of datasets to return.
- * @param page The page to fetch.
- * @param query The user query.
- * @param sort The sorting order.
- * @param facets The filters to apply.
- * @returns The results from the GeoNetwork Catalogue.
- */
+export const defaultAggregationKeys = [
+  'resourceType',
+  'inspireTheme',
+  'cl_topic',
+  'format',
+  'organisationNameObject',
+  'groupOwner',
+];
+function getAggregations(
+  fieldNames = defaultAggregationKeys,
+): Record<string, unknown> {
+  return Object.fromEntries(
+    fieldNames.map((fieldName) => [fieldName, { terms: { field: fieldName } }]),
+  );
+}
 
 export async function fetchGeoNetwork(
-  catalogueUrl: string,
-  itemsPerPage: number,
-  page: number,
-  query: string,
-  sort: string,
-  facets: Record<string, string>,
-  filter?: Record<string, string>,
+  options: CatalogueOptions,
 ): Promise<CatalogueData> {
-  const options = { method: 'GET', signal: AbortSignal.timeout(30000) };
-  const sortBy = Object.keys(GeoNetworkSortingOptions).includes(sort)
-    ? GeoNetworkSortingOptions[sort as keyof typeof GeoNetworkSortingOptions]
-    : GeoNetworkSortingOptions.relevance;
-  const facetQ = Object.entries({
-    ...facets,
-    ...(filter ? filter : {}),
-  })
-    .map(([k, v]) => `${k}/${encodeURIComponent(v)}`)
-    .join('&');
+  const url = enforceCatalogueUrl(options.url, CataloguesTypes.GEONETWORK);
 
-  const url = new URL(`${removeLastSlash(catalogueUrl)}/q`);
-  url.searchParams.set('_content_type', 'json');
-  url.searchParams.set('facet.q', facetQ);
-  url.searchParams.set('resultType', 'details');
-  url.searchParams.set('fast', 'index');
-  url.searchParams.set('from', (itemsPerPage * page + 1).toString());
-  url.searchParams.set('to', (itemsPerPage * (page + 1)).toString());
-  url.searchParams.set('any', query);
-  url.searchParams.set('sortBy', sortBy);
-  if (sortBy === GeoNetworkSortingOptions.nameAsc) {
-    url.searchParams.append('sortOrder', 'reverse');
-  }
+  const sortBy =
+    GeoNetworkSortingOptions[
+      options.sortBy as keyof typeof GeoNetworkSortingOptions
+    ] ?? GeoNetworkSortingOptions.relevance;
 
-  return fetch(url, options)
-    .then((res) => res.json())
+  const sort: Array<string | Record<string, { order: 'asc' | 'desc' }>> =
+    sortBy === GeoNetworkSortingOptions.relevance
+      ? ['_score']
+      : [
+          {
+            [sortBy]: {
+              order:
+                sortBy === GeoNetworkSortingOptions.nameAsc ? 'asc' : 'desc',
+            },
+          },
+          '_score',
+        ];
+
+  const body = {
+    sort,
+    track_total_hits: true,
+    from: options.itemsPerPage * options.page,
+    size: options.itemsPerPage,
+    aggregations: getAggregations(options.aggregationKeys),
+    query: {
+      bool: {
+        must: options.query ? [{ query_string: { query: options.query } }] : [],
+        filter: [
+          ...Object.entries({
+            ...options.facets,
+            ...(options.filter ?? {}),
+          }).map(([k, v]) => ({
+            term: { [k]: v },
+          })),
+        ],
+      },
+    },
+  };
+
+  const init: RequestInit = {
+    method: 'POST',
+    signal: AbortSignal.timeout(30000),
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify(body),
+  };
+
+  return fetch(url, init)
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(
+          `GeoNetwork API error: ${res.status} ${res.statusText}`,
+        );
+      }
+      return res.json();
+    })
     .then((data: GeoNetworkResponse) => parseGeoNetworkResponse(data));
 }
 
@@ -240,18 +270,35 @@ export async function fetchGeoNetworkDataset(
   catalogueUrl: string,
   datasetId: string,
 ): Promise<Dataset> {
-  const options = { method: 'GET', signal: AbortSignal.timeout(5000) };
-  const url = new URL(`${removeLastSlash(catalogueUrl)}/q`);
-  url.searchParams.set('_content_type', 'json');
-  url.searchParams.set('fast', 'index');
-  url.searchParams.set('_uuid_OR__id', datasetId);
+  const url = enforceCatalogueUrl(catalogueUrl, CataloguesTypes.GEONETWORK);
+  const body = {
+    query: {
+      bool: {
+        must: [{ multi_match: { fields: ['id', 'uuid'], query: datasetId } }],
+      },
+    },
+  };
 
-  return fetch(url, options)
-    .then((res) => res.json())
-    .then((data: GeoNetworkResponse) => {
-      const dataset = Array.isArray(data.metadata)
-        ? data.metadata[0]
-        : data.metadata;
-      return parseGeoNetworkDataset(dataset);
-    });
+  const init: RequestInit = {
+    method: 'POST',
+    signal: AbortSignal.timeout(30000),
+    body: JSON.stringify(body),
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+  };
+
+  return fetch(url, init)
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(
+          `GeoNetwork API error: ${res.status} ${res.statusText}`,
+        );
+      }
+      return res.json();
+    })
+    .then((data: GeoNetworkResponse) =>
+      parseGeoNetworkDataset(data.hits.hits[0]),
+    );
 }

@@ -17,6 +17,14 @@
             :text="$t(`dynamicLayer.${type}.title`)"
             @click="switchCategory(type)"
           >
+            <template
+              v-if="
+                type === CategoryType.CATALOGUES && addedCatalogue.length === 1
+              "
+              #default
+            >
+              {{ addedCatalogue[0].title }}
+            </template>
             <template #append>
               <VcsBadge
                 v-if="type === CategoryType.ADDED && addedHasUpdate"

@@ -1,5 +1,14 @@
-import type { CatalogueData, Dataset, Distribution } from './catalogues.js';
-import { getDistributionType, removeLastSlash } from './catalogues.js';
+import type {
+  CatalogueData,
+  CatalogueOptions,
+  Dataset,
+  Distribution,
+} from './catalogues.js';
+import {
+  CataloguesTypes,
+  enforceCatalogueUrl,
+  getDistributionType,
+} from './catalogues.js';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 
@@ -169,35 +178,32 @@ function getIdraSortingMode(sortBy: IdraSortingOptions): object {
  * @returns The results from the Idra Catalogue.
  */
 export async function fetchIdra(
-  catalogueUrl: string,
-  itemsPerPage: number,
-  page: number,
-  query: string,
-  sortBy: string,
-  facets: Record<string, string>,
+  options: CatalogueOptions,
 ): Promise<CatalogueData> {
+  const baseUrl = enforceCatalogueUrl(options.url, CataloguesTypes.IDRA);
   // 1. Get CataloguesInfo to retrieve catalogues that allows the search operation.
   // see https://idraopendata.docs.apiary.io/#reference/end-user-api/catalogues-info/get
-  const infoOptions = {
+  const init: RequestInit = {
     method: 'GET',
     headers: { accept: 'application/json' },
     signal: AbortSignal.timeout(30000),
   };
-  const infoUrl = new URL(`${removeLastSlash(catalogueUrl)}/cataloguesInfo`);
-  const nodes = await fetch(infoUrl, infoOptions)
+  const infoUrl = new URL(baseUrl.href);
+  infoUrl.pathname = `${infoUrl.pathname}/cataloguesInfo`;
+  const nodes = await fetch(infoUrl, init)
     .then((response) => response.json())
     .then((data: IdraCataloguesInfo) => data.map((c) => c.id));
 
   // 2. Fetches the catalogues using the nodesIds
   // see https://idraopendata.docs.apiary.io/#reference/end-user-api/metadata-search/post
   const postBody = {
-    filters: createFilteringObject(facets, query),
+    filters: createFilteringObject(options.facets, options.query),
     sort: getIdraSortingMode(
-      IdraSortingOptions[sortBy as keyof typeof IdraSortingOptions],
+      IdraSortingOptions[options.sortBy as keyof typeof IdraSortingOptions],
     ),
     live: false,
-    rows: itemsPerPage.toString(),
-    start: (itemsPerPage * page).toString(),
+    rows: options.itemsPerPage.toString(),
+    start: (options.itemsPerPage * options.page).toString(),
     nodes,
     euroVocFilter: { euroVoc: false, sourceLanguage: '', targetLanguages: [] },
   };
@@ -207,7 +213,8 @@ export async function fetchIdra(
     signal: AbortSignal.timeout(30000),
     body: JSON.stringify(postBody),
   };
-  const searchUrl = new URL(`${removeLastSlash(catalogueUrl)}/search`);
+  const searchUrl = new URL(baseUrl.href);
+  searchUrl.pathname = `${searchUrl.pathname}/search`;
 
   return fetch(searchUrl, searchOptions)
     .then((res) => res.json())
@@ -218,13 +225,14 @@ export async function fetchIdraDataset(
   catalogueUrl: string,
   datasetId: string,
 ): Promise<Dataset> {
-  const options = {
+  const init: RequestInit = {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     signal: AbortSignal.timeout(5000),
   };
-  const url = new URL(`${removeLastSlash(catalogueUrl)}/dataset/${datasetId}`);
-  return fetch(url, options)
+  const datasetUrl = enforceCatalogueUrl(catalogueUrl, CataloguesTypes.IDRA);
+  datasetUrl.pathname = `${datasetUrl.pathname}/dataset/${datasetId}`;
+  return fetch(datasetUrl, init)
     .then((res) => res.json())
     .then((json: IdraResponse) => parseIdraDataset(json.results?.[0]));
 }

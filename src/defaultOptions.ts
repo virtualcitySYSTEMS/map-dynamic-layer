@@ -11,6 +11,8 @@ export type CataloguePreset = {
   description?: string;
   defaultSorting?: string;
   filter?: Record<string, string>;
+  // used for  geonetwork facets
+  aggregationKeys?: string[];
 };
 
 export type DynamicLayerConfig = {

@@ -76,18 +76,30 @@ The 'Added layers' section of the plugin shows all layers added to the Map, sort
 | itemsPerPage | `number` | 14      | The number of datasets to be displayed. 14 is the value used to display the list of datasets without scrolling. | _any_                      |
 | presets      | `Array`  | []      | The presets catalogues.                                                                                         | _See configuration below._ |
 
-#### Catalogue presets configuration
+#### Common properties
 
-| Property       | Type                    | Default                                 | Description                                                                                                                                                       | Allowed values                                |
-| -------------- | ----------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
-| url            | `string`                | `required`                              | The URL of the catalogue.                                                                                                                                         | _any_                                         |
-| type           | `string`                | `required`                              | The type of the catalogue.                                                                                                                                        | 'idra', 'geonetwork', 'nbsRegistry', 'piveau' |
-| title          | `string`                | Domain name                             | The title of the catalogue.                                                                                                                                       | _any_                                         |
-| logo           | `string`                | Catalogue type logo                     | The logo of the catalogue, as a base64 image.                                                                                                                     | _any_                                         |
-| defaultSorting | `string`                | unset for Relevance                     | The default sorting applied to the catalogues items.                                                                                                              | _any_                                         |
-| filter         | `Record<string,string>` | none                                    | An optional object used to prefilter the catalogues entries, available for Piveau and GeoNetwork. Filter defined in the config will not be overridable in the UI. | _any_                                         |
-| subtitle       | `string`                | Catalogue type                          | The catalogue subtitle.                                                                                                                                           | _any_                                         |
-| description    | `string`                | An explanation of how the catalogs work | The catalogue description. Is rendered as MarkDown when no dataset is selected.                                                                                   | _any_                                         |
+These properties are common ot the four supported catalogue types.
+
+| Property    | Type     | Default                                 | Description                                                                     | Allowed values                                |
+| ----------- | -------- | --------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------- |
+| type        | `string` | `required`                              | The type of the catalogue.                                                      | 'idra', 'geonetwork', 'nbsRegistry', 'piveau' |
+| url         | `string` | `required`                              | The URL of the catalogue.                                                       | _any_                                         |
+| title       | `string` | Domain name                             | The title of the catalogue.                                                     | _any_                                         |
+| logo        | `string` | Catalogue type logo                     | The logo of the catalogue, as a base64 image.                                   | _any_                                         |
+| subtitle    | `string` | Catalogue type                          | The catalogue subtitle, shown in catalogues overview.                           | _any_                                         |
+| description | `string` | An explanation of how the catalogs work | The catalogue description. Is rendered as MarkDown when no dataset is selected. | _any_                                         |
+
+#### Type-dependant properties
+
+Additionally to the common properties, the following catalogue type dependant properties can be set. Default values are the **bold** ones
+
+| Property        | Catalogue type     | Type                    | Description                                                                                                         | Allowed values                                                                                                           |
+| --------------- | ------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| defaultSorting  | Idra               | `string`                | The default sorting of datasets                                                                                     | **'nameAsc'**, 'nameDesc', 'lastCreated', 'lastModified'                                                                 |
+| defaultSorting  | GeoNetwork         | `string`                | The default sorting of datasets                                                                                     | **'relevance'**, 'rating', 'popularity', 'dateStamp', 'createDate', 'resourceTitleObject.default.sort' (Title ascending) |
+| defaultSorting  | Piveau             | `string`                | The default sorting of datasets                                                                                     | **'relevance+desc'**, 'title.$locale$+asc', 'title.$locale$+desc', 'modified+desc', 'issued+desc'                        |
+| aggregationKeys | GeoNetwork         | `Array<string>`         | The aggregation kes to be fetched, used for filtering                                                               | `['resourceType','inspireTheme','cl_topic','format','organisationNameObject','groupOwner']`                              |
+| filter          | GeoNetwork, Piveau | `Record<string,string>` | An object used to prefilter the catalogues entries. Filter defined in the config will not be overridable in the UI. | _any_                                                                                                                    |
 
 A config entry could for example look like:
 
@@ -103,14 +115,14 @@ A config entry could for example look like:
   "catalogues": {
     "presets": [
       {
-        "url": "https://data.europa.eu/api/hub/search/",
+        "url": "https://data.europa.eu/",
         "type": "piveau",
         "title": "Data Europa",
         "filter": { "filter": "dataset" },
         "subtitle": "The official portal for European data"
       },
       {
-        "url": "https://open.bydata.de/api/hub/search/",
+        "url": "https://open.bydata.de/",
         "type": "piveau",
         "title": "Offene Daten aus Bayern",
         "description": "# Offene Daten aus Bayern\nHier finden Datenbegeisterte freie Datensätze und Unterstützung, um noch mehr Daten zu teilen. Damit schaffen wir gemeinsam – Verwaltung, Unternehmen, aber auch Wissenschaft und Zivilgesellschaft – Mehrwert für uns alle.\n"

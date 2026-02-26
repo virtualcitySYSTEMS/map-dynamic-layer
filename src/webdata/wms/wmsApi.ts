@@ -1,14 +1,14 @@
 import {
   Extent,
+  getInitForUrl,
   wgs84Projection,
   WMSFeatureProvider,
   WMSLayer,
 } from '@vcmap/core';
 import { type VcsUiApp } from '@vcmap/ui';
-import type { Reactive } from 'vue';
 import { reactive, toRaw } from 'vue';
 import WMSCapabilities from 'ol/format/WMSCapabilities';
-import { getInitForUrl } from '../../helper.js';
+import { getLogger } from '@vcsuite/logger';
 import {
   parseWebdataUrl,
   getCapabilitiesParameters,
@@ -34,131 +34,137 @@ function parseWmsSource(
   url: string,
   optionalParameters: Record<string, string>,
 ): DataItem {
-  const { Capability: capability, Service: service } =
-    new WMSCapabilities().read(xml) as WmsCapabilities;
+  try {
+    const { Capability: capability, Service: service } =
+      new WMSCapabilities().read(xml) as WmsCapabilities;
 
-  const featureInfoResponseType = wmsSupportedFeatureInfoType.find((t) =>
-    capability.Request.GetFeatureInfo?.Format?.includes(t),
-  );
+    const featureInfoResponseType = wmsSupportedFeatureInfoType.find((t) =>
+      capability.Request.GetFeatureInfo?.Format?.includes(t),
+    );
 
-  /**
-   * Gets the nested layers of the passed WMSLayer as DataItem.
-   * @param layer The WMSLayer from which add children layers.
-   * @returns The created DataItem.
-   */
-  function getNestedLayers(layer: WmsLayer): DataItem<WebdataTypes.WMS> {
     /**
-     * Checks if a child layer is different from the parent (is not when only one layer with the same Name).
-     * @param layer The layer to check.
-     * @returns {boolean} Whether the nested layer is the same as the parent.
+     * Gets the nested layers of the passed WMSLayer as DataItem.
+     * @param layer The WMSLayer from which add children layers.
+     * @returns The created DataItem.
      */
-    function isChildDifferent(l: WmsLayer): boolean {
-      if (l.Layer) {
-        if (l.Layer?.length > 1) {
-          return true;
+    function getNestedLayers(layer: WmsLayer): DataItem<WebdataTypes.WMS> {
+      /**
+       * Checks if a child layer is different from the parent (is not when only one layer with the same Name).
+       * @param layer The layer to check.
+       * @returns {boolean} Whether the nested layer is the same as the parent.
+       */
+      function isChildDifferent(l: WmsLayer): boolean {
+        if (l.Layer) {
+          if (l.Layer?.length > 1) {
+            return true;
+          } else {
+            return l.Name !== l.Layer[0].Name;
+          }
         } else {
-          return l.Name !== l.Layer[0].Name;
+          return false;
         }
-      } else {
-        return false;
       }
-    }
-    const childDifferent = isChildDifferent(layer);
+      const childDifferent = isChildDifferent(layer);
 
-    /**
-     * Finds the value of the last passed property name. When a layer and its nested layer are the same, returns the property of the nested one or, if it is a falsy value, the parent one. For non identical layers, returns the parent property value.
-     * @param propertyNames The names of the nested properties to find.
-     * @returns The value of the last passed property if exists.
-     */
-    function findValue(propertyNames: Array<string>): unknown {
-      let prop = childDifferent
-        ? (layer as Record<string, unknown>)
-        : ((layer?.Layer?.[0] as Record<string, unknown>) ??
-          (layer as Record<string, unknown>));
-      propertyNames.forEach((n) => {
-        prop = prop?.[n] as Record<string, unknown>;
-      });
-      return prop as unknown;
+      /**
+       * Finds the value of the last passed property name. When a layer and its nested layer are the same, returns the property of the nested one or, if it is a falsy value, the parent one. For non identical layers, returns the parent property value.
+       * @param propertyName The name of the property to find.
+       * @returns The value of the property if exists.
+       */
+      function findValue(
+        propertyName: keyof WmsLayer,
+      ): WmsLayer[keyof WmsLayer] | undefined {
+        const prop = childDifferent ? layer : (layer?.Layer?.[0] ?? layer);
+        return prop[propertyName];
+      }
+
+      const alreadyExists = !!app.layers.hasKey(layer.Name);
+      const item: DataItem<WebdataTypes.WMS> = {
+        optionalParameters,
+        formats: capability.Request.GetMap.Format.filter(
+          (f) => f === 'image/png' || f === 'image/jpeg',
+        ),
+        featureInfoResponseType,
+        attributions: {
+          provider:
+            service.ContactInformation?.ContactPersonPrimary
+              ?.ContactOrganization,
+          url: service.OnlineResource,
+        },
+        url,
+        actions: [],
+        type: WebdataTypes.WMS,
+        name: findValue('Name') as string,
+        title: findValue('Title') as string,
+        queryable: findValue('queryable') as boolean,
+        supportsTransparency: !(findValue('opaque') as boolean),
+        extent: validateExtent(
+          new Extent({
+            coordinates: findValue('EX_GeographicBoundingBox') as number[],
+            projection: { epsg: 4326 },
+          }),
+        ),
+        description: findValue('Abstract') as string,
+        keywordList: findValue('KeywordList') as string[],
+        styles: layer.Style?.map((s) => {
+          return {
+            value: s.Name,
+            title: s.Title,
+            abstract: s.Abstract,
+            legendUrl: s.LegendURL[0].OnlineResource,
+          };
+        }),
+        children: isChildDifferent(layer)
+          ? layer.Layer?.map((l) => getNestedLayers(l))
+          : [],
+      };
+      item.isAddedToMap = alreadyExists && !item.children.length;
+      return item;
     }
 
-    const alreadyExists = !!app.layers.hasKey(layer.Name);
-    const item: DataItem<WebdataTypes.WMS> = {
-      optionalParameters,
+    const content = reactive({
+      actions: [],
+      name: url,
+      title: service.Title,
+      type: WebdataTypes.WMS,
+      url,
+      isRootElement: true,
+      accessConstraints: service.AccessConstraints,
+      description: service.Abstract,
+      fees: service.Fees,
       formats: capability.Request.GetMap.Format.filter(
         (f) => f === 'image/png' || f === 'image/jpeg',
       ),
       featureInfoResponseType,
-      attributions: {
-        provider:
+      keywordList: service.KeywordList,
+      onlineResource: service.OnlineResource,
+      contact: {
+        address: service.ContactInformation?.ContactAddress?.Address,
+        city: `${service.ContactInformation?.ContactAddress?.PostCode ?? ''}${service.ContactInformation?.ContactAddress?.PostCode && service.ContactInformation?.ContactAddress?.City ? ' ' : ''}${service.ContactInformation?.ContactAddress?.City ?? ''}`,
+        country: service.ContactInformation?.ContactAddress?.Country,
+        person: service.ContactInformation?.ContactPersonPrimary?.ContactPerson,
+        position: service.ContactInformation?.ContactPosition,
+        organization:
           service.ContactInformation?.ContactPersonPrimary?.ContactOrganization,
-        url: service.OnlineResource,
       },
-      url,
-      actions: [],
-      type: WebdataTypes.WMS,
-      name: findValue(['Name']) as string,
-      title: findValue(['Title']) as string,
-      queryable: findValue(['queryable']) as boolean,
-      supportsTransparency: !(findValue(['opaque']) as boolean),
-      extent: validateExtent(
-        new Extent({
-          coordinates: findValue(['EX_GeographicBoundingBox']) as number[],
-          projection: { epsg: 4326 },
-        }),
-      ),
-      description: findValue(['Abstract']) as string,
-      keywordList: findValue(['KeywordList']) as string[],
-      styles: layer.Style?.map((s) => {
-        return {
-          value: s.Name,
-          title: s.Title,
-          abstract: s.Abstract,
-          legendUrl: s.LegendURL[0].OnlineResource,
-        };
-      }),
-      children: isChildDifferent(layer)
-        ? layer.Layer?.map((l) => getNestedLayers(l))
-        : [],
-    };
-    item.isAddedToMap = alreadyExists && !item.children.length;
-    return item;
-  }
-
-  const content: Reactive<DataItem<WebdataTypes.WMS>> = reactive({
-    actions: [],
-    name: url,
-    title: service.Title,
-    type: WebdataTypes.WMS,
-    url,
-    isRootElement: true,
-    accessConstraints: service.AccessConstraints,
-    description: service.Abstract,
-    fees: service.Fees,
-    formats: capability.Request.GetMap.Format.filter(
-      (f) => f === 'image/png' || f === 'image/jpeg',
-    ),
-    featureInfoResponseType,
-    keywordList: service.KeywordList,
-    onlineResource: service.OnlineResource,
-    contact: {
-      address: service.ContactInformation?.ContactAddress?.Address,
-      city: `${service.ContactInformation?.ContactAddress?.PostCode ?? ''}${service.ContactInformation?.ContactAddress?.PostCode && service.ContactInformation?.ContactAddress?.City ? ' ' : ''}${service.ContactInformation?.ContactAddress?.City ?? ''}`,
-      country: service.ContactInformation?.ContactAddress?.Country,
-      person: service.ContactInformation?.ContactPersonPrimary?.ContactPerson,
-      position: service.ContactInformation?.ContactPosition,
-      organization:
-        service.ContactInformation?.ContactPersonPrimary?.ContactOrganization,
-    },
-    children: capability.Layer.Layer.map((l) => getNestedLayers(l)),
-  });
-  function addActions(item: DataItem): void {
-    item.actions.push(...getTreeviewDefaultActions(app, item));
-    item.children?.forEach((child) => {
-      addActions(child);
+      children: capability.Layer.Layer.map((l) => getNestedLayers(l)),
     });
+    function addActions(item: DataItem): void {
+      item.actions.push(...getTreeviewDefaultActions(app, item));
+      item.children?.forEach((child) => {
+        addActions(child);
+      });
+    }
+    addActions(content);
+    return content;
+  } catch (error) {
+    getLogger('DynamicLayer').error(
+      `Failed to parse WMS Capabilities from ${url}: ${String(error)}`,
+    );
+    throw new Error(
+      'Failed to parse WMS Capabilities, see console for details',
+    );
   }
-  addActions(content as DataItem);
-  return content as DataItem;
 }
 
 /**

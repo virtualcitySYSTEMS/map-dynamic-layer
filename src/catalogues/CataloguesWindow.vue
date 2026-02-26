@@ -4,7 +4,7 @@
     <v-row
       v-if="!selectedCatalogue"
       no-gutters
-      class="w-100 overflow-y-auto px-1"
+      class="w-100 h-100 overflow-y-auto px-1"
     >
       <v-col
         v-for="catalogue in added"

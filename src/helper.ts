@@ -1,6 +1,5 @@
 import { NotificationType, type VcsUiApp } from '@vcmap/ui';
 import { getLogger } from '@vcsuite/logger';
-import { TrustedServers } from '@vcmap-cesium/engine';
 import { CategoryType } from './constants.js';
 import { WebdataTypes } from './webdata/webdataConstants.js';
 import { name } from '../package.json';
@@ -70,13 +69,14 @@ export function preloadCatalogues(
     const title = c.title ?? host.split('.').slice(1).join('.');
     const catalogueItem = { ...c, title };
 
-    return fetchCatalogue(
-      catalogueItem.type,
-      catalogueItem.url,
-      plugin.config.catalogues.itemsPerPage,
-      c.filter,
-      c.defaultSorting,
-    ).then((data) => {
+    return fetchCatalogue({
+      type: catalogueItem.type,
+      url: catalogueItem.url,
+      itemsPerPage: plugin.config.catalogues.itemsPerPage,
+      filter: c.filter,
+      sortBy: c.defaultSorting,
+      aggregationKeys: c.aggregationKeys,
+    }).then((data) => {
       if (data) {
         const catalogue: CatalogueItem = {
           ...catalogueItem,
@@ -123,21 +123,8 @@ export function preloadCatalogues(
         await load(c);
       }),
   ).catch((error: unknown) => {
-    getLogger(name).error(String(error));
+    getLogger(name).error(
+      `An error occurred while preloading catalogues: ${String(error)}`,
+    );
   });
-}
-
-// TODO use @vcmap/core util when updating to 6.3
-export function getInitForUrl(
-  url: string,
-  headers?: Record<string, string>,
-): RequestInit {
-  const init: RequestInit = {};
-  if (headers) {
-    init.headers = headers;
-  }
-  if (TrustedServers.contains(url)) {
-    init.credentials = 'include';
-  }
-  return init;
 }

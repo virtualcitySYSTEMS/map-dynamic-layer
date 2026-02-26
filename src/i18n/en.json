@@ -84,8 +84,9 @@
       "fees": "Fees",
       "license": "License",
       "modified": "Modified",
-      "publisher": "Publisher",
       "owner": "Owner",
+      "publisher": "Publisher",
+      "source": "Source",
       "website": "Website",
       "noInfoFor": "No information to be displayed for",
       "successfullyAdded": "has successfully been added! Edit its parameters from the Added Data tab."
@@ -170,7 +171,8 @@
       "addPreset": "Add a catalogue",
       "subtitle": "Subtitle",
       "logo": "Logo",
-      "filter": "Filter"
+      "filter": "Filter",
+      "aggregationKeys": "Aggregation keys"
     }
   }
 }

@@ -1,9 +1,5 @@
 <template>
-  <AbstractConfigEditor
-    v-if="localConfig"
-    v-bind="{ ...$attrs, ...$props }"
-    @submit="apply"
-  >
+  <AbstractConfigEditor v-if="localConfig" @submit="apply">
     <v-container class="pa-0">
       <VcsFormSection
         :heading="$t('dynamicLayer.config.general')"
@@ -181,7 +177,7 @@
                     <VcsTextField id="logo" v-model="menuCatalogueItem.logo" />
                   </v-col>
                 </v-row>
-                <v-row no-gutters>
+                <v-row v-if="supportsSorting" no-gutters>
                   <v-col>
                     <VcsLabel html-for="defaultSorting">
                       {{ $t('dynamicLayer.config.defaultSorting') }}
@@ -217,6 +213,29 @@
                           (menuCatalogueItem.filter = v
                             ? JSON.parse(v)
                             : undefined)
+                      "
+                    />
+                  </v-col>
+                </v-row>
+                <v-row
+                  v-if="menuCatalogueItem.type === 'geonetwork'"
+                  no-gutters
+                >
+                  <v-col>
+                    <VcsLabel html-for="aggregationKeys">
+                      {{ $t('dynamicLayer.config.aggregationKeys') }}
+                    </VcsLabel>
+                  </v-col>
+                  <v-col>
+                    <VcsChipArrayInput
+                      id="aggregationKeys"
+                      column
+                      :model-value="
+                        menuCatalogueItem.aggregationKeys ??
+                        defaultAggregationKeys
+                      "
+                      @update:model-value="
+                        (v: string[]) => (menuCatalogueItem.aggregationKeys = v)
                       "
                     />
                   </v-col>
@@ -269,9 +288,10 @@
     VcsList,
     VcsFormButton,
     VcsTextArea,
+    VcsChipArrayInput,
   } from '@vcmap/ui';
   import type { PropType, Ref } from 'vue';
-  import { defineComponent, reactive, ref, toRaw } from 'vue';
+  import { computed, defineComponent, reactive, ref, toRaw, watch } from 'vue';
   import type {
     CataloguePreset,
     DynamicLayerConfig,
@@ -279,10 +299,16 @@
   import { getDefaultOptions } from './defaultOptions.js';
   import { CategoryType } from './constants.js';
   import { getAvailableTypes } from './helper.js';
-  import { CataloguesTypes } from './catalogues/catalogues.js';
+  import {
+    CataloguesTypes,
+    getDefaultSortingOption,
+  } from './catalogues/catalogues.js';
   import { PiveauSortingOptions } from './catalogues/piveau.js';
   import { IdraSortingOptions } from './catalogues/idra.js';
-  import { GeoNetworkSortingOptions } from './catalogues/geonetwork.js';
+  import {
+    defaultAggregationKeys,
+    GeoNetworkSortingOptions,
+  } from './catalogues/geonetwork.js';
 
   export default defineComponent({
     name: 'DynamicLayerConfigEditor',
@@ -294,6 +320,7 @@
       VForm,
       VRow,
       AbstractConfigEditor,
+      VcsChipArrayInput,
       VcsFormButton,
       VcsFormSection,
       VcsLabel,
@@ -331,11 +358,24 @@
       const menuCatalogueItem = ref<CataloguePreset>({
         url: '',
         type: CataloguesTypes.PIVEAU,
+        defaultSorting: PiveauSortingOptions.relevance,
         title: '',
         subtitle: '',
         logo: '',
         description: '',
       });
+      watch(
+        () => menuCatalogueItem.value.type,
+        (type) => {
+          menuCatalogueItem.value.defaultSorting =
+            getDefaultSortingOption(type);
+          if (type === CataloguesTypes.GEONETWORK) {
+            menuCatalogueItem.value.aggregationKeys = defaultAggregationKeys;
+          } else {
+            delete menuCatalogueItem.value.aggregationKeys;
+          }
+        },
+      );
       const dialog = ref(false);
       function updateList(): void {
         catalogues.value = [];
@@ -380,6 +420,10 @@
         catalogues,
         menuCatalogueItem,
         dialog,
+        defaultAggregationKeys,
+        supportsSorting: computed(
+          () => menuCatalogueItem.value.type !== CataloguesTypes.NBS,
+        ),
         getsortOptions: (
           type: CataloguesTypes,
         ): { value: string; title: string }[] => {
@@ -415,6 +459,7 @@
               menuCatalogueItem.value = {
                 url: '',
                 type: CataloguesTypes.PIVEAU,
+                defaultSorting: PiveauSortingOptions.relevance,
                 title: '',
                 subtitle: '',
                 logo: '',

@@ -1,8 +1,14 @@
-import type { CatalogueData, Dataset, Distribution } from './catalogues.js';
+import type {
+  CatalogueData,
+  CatalogueOptions,
+  Dataset,
+  Distribution,
+} from './catalogues.js';
 import {
+  CataloguesTypes,
+  enforceCatalogueUrl,
   getDistributionType,
   getLocalizedValue,
-  removeLastSlash,
 } from './catalogues.js';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -142,41 +148,34 @@ function parsePiveauResponse(
  * Fetches a Piveau catalogue and returns its response parsed.
  */
 export async function fetchPiveau(
-  catalogueUrl: string,
-  itemsPerPage: number,
-  page: number,
-  query: string,
-  sortBy: string | PiveauSortingOptions,
-  facets: Record<string, string>,
-  locale: string,
-  filter?: Record<string, string>,
+  options: CatalogueOptions,
 ): Promise<CatalogueData> {
-  const options = {
+  const url = enforceCatalogueUrl(options.url, CataloguesTypes.PIVEAU);
+  url.pathname = `${url.pathname}/search`;
+
+  const init: RequestInit = {
     method: 'GET',
     headers: { accept: 'application/json' },
     signal: AbortSignal.timeout(30000),
   };
-  const sort = Object.keys(PiveauSortingOptions).includes(sortBy)
-    ? PiveauSortingOptions[sortBy as keyof typeof PiveauSortingOptions].replace(
-        '$locale$',
-        locale,
-      )
+  const sort = Object.keys(PiveauSortingOptions).includes(options.sortBy)
+    ? PiveauSortingOptions[
+        options.sortBy as keyof typeof PiveauSortingOptions
+      ].replace('$locale$', options.locale)
     : PiveauSortingOptions.relevance;
-  const url = new URL(`${removeLastSlash(catalogueUrl)}/search`);
-  if (filter) {
-    Object.entries(filter).forEach(([key, value]) => {
+  if (options.filter) {
+    Object.entries(options.filter).forEach(([key, value]) => {
       url.searchParams.append(key, value);
     });
   }
-  url.searchParams.append('q', query);
+  url.searchParams.append('q', options.query);
   url.searchParams.append('sort', sort);
-  url.searchParams.append('page', page.toString());
-  url.searchParams.append('limit', itemsPerPage.toString());
-  url.searchParams.append('facets', JSON.stringify(facets));
-
-  return fetch(url, options)
+  url.searchParams.append('page', options.page.toString());
+  url.searchParams.append('limit', options.itemsPerPage.toString());
+  url.searchParams.append('facets', JSON.stringify(options.facets));
+  return fetch(url, init)
     .then((res) => res.json())
-    .then((data: PiveauResponse) => parsePiveauResponse(data, locale));
+    .then((data: PiveauResponse) => parsePiveauResponse(data, options.locale));
 }
 
 /**
@@ -187,14 +186,15 @@ export async function fetchPiveauDataset(
   datasetId: string,
   locale: string,
 ): Promise<Dataset> {
-  const url = new URL(`${removeLastSlash(catalogueUrl)}/datasets/${datasetId}`);
-  const options = {
+  const url = enforceCatalogueUrl(catalogueUrl, CataloguesTypes.PIVEAU);
+  url.pathname = `${url.pathname}/dataset/${datasetId}`;
+  const init: RequestInit = {
     method: 'GET',
     headers: { accept: 'application/json' },
     signal: AbortSignal.timeout(5000),
   };
 
-  return fetch(url, options)
+  return fetch(url, init)
     .then((res) => res.json())
     .then((data: { result: PiveauDataset }) =>
       parsePiveauDataset(data.result, locale),

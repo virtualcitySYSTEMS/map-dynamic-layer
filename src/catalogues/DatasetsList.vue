@@ -7,14 +7,13 @@
           class="w-100"
           :loading="searchLoading"
           :placeholder="`${$t('dynamicLayer.catalogues.searchAmong')} ${data.count.toLocaleString(locale)} ${$t('dynamicLayer.catalogues.datasets')}`"
-          @click:clear="updateSearch"
-          @keyup.enter="updateSearch"
+          @click:clear="clearSearch"
+          @keydown.enter="updateSearch"
         />
         <VcsActionButtonList
           v-if="sortByActions?.length"
           class="px-1"
           :actions="sortByActions"
-          button="VcsButton"
           overflow-icon="mdi-sort"
           :overflow-count="0"
         />
@@ -81,7 +80,15 @@
 
 <script lang="ts">
   import type { PropType } from 'vue';
-  import { computed, defineComponent, inject, reactive, ref, watch } from 'vue';
+  import {
+    computed,
+    defineComponent,
+    inject,
+    nextTick,
+    reactive,
+    ref,
+    watch,
+  } from 'vue';
   import {
     VCard,
     VCol,
@@ -197,6 +204,9 @@
       );
       const openedFacet = ref();
       const silentUpdatePage = ref(false);
+      const catalogueConfig = plugin.config.catalogues.presets.find(
+        ({ url }) => url === props.source.url,
+      );
 
       async function updateResults(
         keepCurrentPage = false,
@@ -213,17 +223,18 @@
             // Only take the first selected value for each facet, since the selection cannot be multiple
             .map((f) => [f[0], f[1][0]]),
         );
-        const fetchedData = await fetchCatalogue(
-          props.source.type,
-          props.source.url,
-          itemsPerPage,
-          props.source.filter,
-          sortBy.value,
+        const fetchedData = await fetchCatalogue({
+          type: props.source.type,
+          url: props.source.url,
           locale,
-          page.value - 1,
-          search.value ?? '',
           facets,
-        )
+          itemsPerPage,
+          filter: props.source.filter,
+          sortBy: sortBy.value,
+          page: page.value - 1,
+          query: search.value,
+          aggregationKeys: catalogueConfig?.aggregationKeys,
+        })
           .catch(() => {
             silentUpdatePage.value = true;
             page.value = previousPage;
@@ -268,8 +279,10 @@
         arraySelected,
         filters,
         openedFacet,
-        facets: data.value.facets.filter(
-          (f) => !Object.keys(props.source.filter ?? {}).includes(f.id),
+        facets: computed(() =>
+          data.value.facets.filter(
+            ({ id }) => !Object.keys(props.source.filter ?? {}).includes(id),
+          ),
         ),
         async updateFilters(
           filterId: string,
@@ -279,7 +292,11 @@
           await updateResults();
         },
         async updateSearch(): Promise<void> {
+          await updateResults();
+        },
+        async clearSearch(): Promise<void> {
           searchLoading.value = true;
+          await nextTick();
           await updateResults();
           searchLoading.value = false;
         },

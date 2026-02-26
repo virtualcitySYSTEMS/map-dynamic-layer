@@ -1,8 +1,15 @@
 # v3.0.0
 
 - Updated @vcmap/core and @vcmap/ui to versions 6.3
-- Redesigned the UI for small screens: the sidebar is now collapsible
-- Fixed an bug in fetching and accessing NBS Registries
+- Added support for GeoNetwork 4, dropping support of previous versions
+- Redesigned the UI for small screens by making the sidebar collapsible
+- Enforced catalogues URL, allowing simpler configuration using only the host name
+- Changed catalogue tab behavior to display title of catalogue when only one is configured
+- Added `aggregationKeys` option to GeoNetwork catalogue presets, to overwrite the default keys requested and used as filters
+- Added a missing translation key in the Catalogue section
+- Added format to non supported catalogue dataset distributions
+- Fixed a bug in fetching and accessing NBS Registries
+- Fixed a bug where clearing search field in catalogue would not reset the results
 
 # v2.0.2
 

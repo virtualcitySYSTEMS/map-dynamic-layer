@@ -168,6 +168,22 @@
   import DistributionDetails from './DistributionDetails.vue';
   import { name } from '../../package.json';
 
+  function getFormat(item: Distribution): string {
+    if (item.format) {
+      return item.format;
+    }
+    if (item.downloadUrl) {
+      try {
+        return new URL(item.downloadUrl).pathname.slice(
+          item.downloadUrl.lastIndexOf('.') + 1,
+        );
+      } catch {
+        return '';
+      }
+    }
+    return '';
+  }
+
   function getHeaders(distributions: Distribution[] = []): Array<object> {
     const headers = [
       {
@@ -179,10 +195,11 @@
         sortable: true,
       },
     ];
-    if (distributions.some((d) => d.format)) {
+
+    if (distributions.some(getFormat)) {
       headers.push({
         title: 'dynamicLayer.common.format',
-        value: (item) => item.format ?? '',
+        value: (item) => getFormat(item),
         sortable: true,
         cellProps: { nowrap: false },
         nowrap: true,
