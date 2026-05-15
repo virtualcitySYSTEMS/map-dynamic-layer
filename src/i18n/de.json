@@ -48,7 +48,7 @@
       "noDistributionAvailable": "Für diesen Datensatz ist keine Bereitstellung verfügbar.",
       "chooseLayersToAdd": "Unter dieser Adresse sind mehrere Ebenen verfügbar. Bitte fügen Sie die gewünschten Ebenen hinzu, indem Sie auf + klicken.",
       "selectedDistributionName": "Der Name der ausgewählten Bereitstellung lautet:",
-      "defaultMarkdownDescription": "# Wie benutzt man den Katalogbereich dieses Plugins?\n## Auswahl eines Datensatzes:\nUm einen bestimmten Datensatz zu finden, stehen Ihnen verschiedene Optionen zur Verfügung:\n- Mit der Suchleiste können Sie die Datensätze nach Text filtern;\n- Mit der Schaltfläche „Sortieren“ können Sie die Reihenfolge wählen, in der die Datensätze angezeigt werden (nach Relevanz, Name, Erstellungs- oder Änderungsdatum);\n- Mit der Schaltfläche „Filtern“ können Sie die Datensätze nach den im Katalog verfügbaren Optionen filtern (z. B. Kategorie, Format, ...).\n\nWenn Sie den gewünschten Datensatz gefunden haben, wählen Sie ihn in der Liste auf der linken Seite aus, um seine Informationen anzuzeigen.\n## Fügen Sie der Karte die Verteilung eines Datensatzes hinzu:\nEin Datensatz aus einem Katalog kann die folgenden Informationen enthalten: eine Liste von Schlüsselwörtern und eine Beschreibung (die bei Bedarf eingeklappt werden kann) sowie eine Liste der Verteilungen. Die Liste der Verteilungen zeigt alle Verteilungen in Bezug auf einen Datensatz an. In der Datentabelle kann jede Verteilung erweitert werden, um weitere Details zu erhalten. Dabei kann es sich um einen Bezeichner, eine Beschreibung und Schaltflächen für den Zugriff und das Herunterladen der Daten handeln. Wenn eine Verteilung in einem Format vorliegt, das auf der Karte angezeigt werden kann und vom Plugin unterstützt wird, wird eine Schaltfläche „Zur Karte hinzufügen“ angezeigt. Die folgenden Datenformate werden unterstützt und können der Karte hinzugefügt werden:\n\n- [3D Tiles](https://www.ogc.org/standard/3dtiles/)\n- [Cesium PointCloud](https://cesium.com/platform/cesium-ion/3d-tiling-pipeline/point-clouds/)\n- [Cesium Terrain](https://cesium.com/learn/cesiumjs-learn/cesiumjs-terrain/)\n- [CZML](https://github.com/AnalyticalGraphicsInc/czml-writer/wiki/CZML-Guide)\n- [GeoJSON](https://www.ogc.org/standard/eo-geojson/)\n- [Web Feature Service (WFS)](https://www.ogc.org/standard/wfs/)\n- [Web Map Service (WMS)](https://www.ogc.org/standard/wms/)\n- [Web Map Tile Service (WMTS)](https://www.ogc.org/standard/wmts/)\n\nWenn eine Verteilung zur Karte hinzugefügt wird:\n- eine Benachrichtigung bestätigt das Hinzufügen;\n- Sie wird auf der Tab Hinzugefügte Daten aufgeführt, wo ihre Parameter geändert werden können;\n- und es wird ein Ebeneneintrag in den Karteninhaltsbaum eingefügt, um sie zu aktivieren/deaktivieren.\n\nWenn die hinzugefügten Daten aus Unterdaten bestehen (z. B. ein WMS-Server mit mehreren Ebenen), öffnet sich ein neues Fenster zur Auswahl der gewünschten Ebene.",
+      "defaultMarkdownDescription": "# Wie benutzt man den Katalogbereich dieses Plugins?\n## Auswahl eines Datensatzes:\nUm einen bestimmten Datensatz zu finden, stehen Ihnen verschiedene Optionen zur Verfügung:\n- Mit der Suchleiste können Sie die Datensätze nach Text filtern;\n- Mit der Schaltfläche „Sortieren“ können Sie die Reihenfolge wählen, in der die Datensätze angezeigt werden (nach Relevanz, Name, Erstellungs- oder Änderungsdatum);\n- Mit der Schaltfläche „Filtern“ können Sie die Datensätze nach den im Katalog verfügbaren Optionen filtern (z. B. Kategorie, Format, ...).\n\nWenn Sie den gewünschten Datensatz gefunden haben, wählen Sie ihn in der Liste auf der linken Seite aus, um seine Informationen anzuzeigen.\n## Fügen Sie der Karte die Verteilung eines Datensatzes hinzu:\nEin Datensatz aus einem Katalog kann die folgenden Informationen enthalten: eine Liste von Schlüsselwörtern und eine Beschreibung (die bei Bedarf eingeklappt werden kann) sowie eine Liste der Verteilungen. Die Liste der Verteilungen zeigt alle Verteilungen in Bezug auf einen Datensatz an. In der Datentabelle kann jede Verteilung erweitert werden, um weitere Details zu erhalten. Dabei kann es sich um einen Bezeichner, eine Beschreibung und Schaltflächen für den Zugriff und das Herunterladen der Daten handeln. Wenn eine Verteilung in einem Format vorliegt, das auf der Karte angezeigt werden kann und vom Plugin unterstützt wird, wird eine Schaltfläche „Zur Karte hinzufügen“ angezeigt. Die folgenden Datenformate werden unterstützt und können der Karte hinzugefügt werden:\n\n- [3D Tiles](https://www.ogc.org/standard/3dtiles/)\n- [Cesium PointCloud](https://cesium.com/platform/cesium-ion/3d-tiling-pipeline/point-clouds/)\n- [Cesium Terrain](https://cesium.com/learn/cesiumjs-learn/cesiumjs-terrain/)\n- [CZML](https://github.com/AnalyticalGraphicsInc/czml-writer/wiki/CZML-Guide)\n- [GeoJSON](https://www.ogc.org/standard/eo-geojson/)\n- [Web Feature Service (WFS)](https://www.ogc.org/standard/wfs/)\n- [Web Map Service (WMS)](https://www.ogc.org/standard/wms/)\n- [Web Map Tile Service (WMTS)](https://www.ogc.org/standard/wmts/)\n\nWenn eine Verteilung zur Karte hinzugefügt wird:\n- eine Benachrichtigung bestätigt das Hinzufügen;\n- Sie wird auf der Registerkarte „Hinzugefügte Daten“ angezeigt, wo ihre Parameter geändert werden können;\n- und es wird ein Ebeneneintrag in den Karteninhaltsbaum eingefügt, um sie zu aktivieren/deaktivieren.\n\nWenn die hinzugefügten Daten aus Unterdaten bestehen (z. B. ein WMS-Server mit mehreren Ebenen), öffnet sich ein neues Fenster zur Auswahl der gewünschten Ebene.",
       "sortBy": {
         "relevance": "Relevanz",
         "nameAsc": "Name A-Z",
@@ -88,7 +88,7 @@
       "source": "Quelle",
       "website": "Website",
       "noInfoFor": "Keine anzuzeigenden Informationen für",
-      "successfullyAdded": "wurde erfolgreich hinzugefügt! Bearbeiten Sie ihre Einstellungen auf der Registerkarte Hinzugefügte Daten."
+      "successfullyAdded": "wurde erfolgreich hinzugefügt! Bearbeiten Sie ihre Einstellungen auf der Tab Hinzugefügte Daten."
     },
     "parameters": {
       "title": "Parameter",
@@ -126,7 +126,7 @@
       "overview": "Übersicht",
       "remove": "Entfernen",
       "rename": "Umbenennen",
-      "toggleDatasetList": "Toggle dataset list",
+      "toggleDatasetList": "Datensatzliste ein-/ausblenden",
       "zoomToExtent": "Zoom zur Ausdehnung",
       "filter": {
         "showAddedOnly": "Nur hinzugefügte Ebenen anzeigen",
@@ -145,7 +145,7 @@
       }
     },
     "errors": {
-      "addingLayer": "Ein Fehler aufgetreten beim Hinzufügen der Ebene",
+      "addingLayer": "Ein Fehler ist aufgetreten beim Hinzufügen der Ebene",
       "alreadyAdded": "ist bereits hinzugefügt worden!",
       "invalidUrl": "Diese URL ist nicht gültig!",
       "invalidJson": "Das bereitgestellte JSON ist ungültig!",

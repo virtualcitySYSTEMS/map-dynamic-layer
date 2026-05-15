@@ -120,11 +120,13 @@ export function preloadCatalogues(
     catalogues
       .filter((c) => c !== entryCatalogue)
       .map(async (c) => {
-        await load(c);
+        try {
+          await load(c);
+        } catch (error: unknown) {
+          getLogger(name).error(
+            `An error occurred while preloading catalogue ${c.title} at ${c.url}, ${String(error)}`,
+          );
+        }
       }),
-  ).catch((error: unknown) => {
-    getLogger(name).error(
-      `An error occurred while preloading catalogues: ${String(error)}`,
-    );
-  });
+  ).catch(() => {});
 }

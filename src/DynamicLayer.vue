@@ -1,52 +1,55 @@
 <template>
-  <v-sheet>
-    <v-row no-gutters class="d-flex align-center">
-      <VcsButton
-        v-if="mdAndDown"
-        :active="toggleState"
-        :disabled="disableToggle"
-        :tooltip="$t('dynamicLayer.actions.toggleDatasetList')"
-        icon="mdi-view-split-vertical"
-        class="toggle-button px-2"
-        @click="toggleOverlay"
-      />
-      <v-tabs color="primary" height="32" :model-value="activeTab">
-        <span v-for="type in enabledTabs" :key="type">
-          <v-tab
-            :value="type"
-            :text="$t(`dynamicLayer.${type}.title`)"
-            @click="switchCategory(type)"
-          >
-            <template
-              v-if="
-                type === CategoryType.CATALOGUES && addedCatalogue.length === 1
-              "
-              #default
+  <v-sheet class="dynamic-layer">
+    <div class="dl-header">
+      <v-row no-gutters class="d-flex align-center">
+        <VcsButton
+          v-if="mdAndDown"
+          :active="toggleState"
+          :disabled="disableToggle"
+          :tooltip="$t('dynamicLayer.actions.toggleDatasetList')"
+          icon="mdi-view-split-vertical"
+          class="toggle-button px-2"
+          @click="toggleOverlay"
+        />
+        <v-tabs color="primary" height="32" :model-value="activeTab">
+          <span v-for="type in enabledTabs" :key="type">
+            <v-tab
+              :value="type"
+              :text="$t(`dynamicLayer.${type}.title`)"
+              @click="switchCategory(type)"
             >
-              {{ addedCatalogue[0].title }}
-            </template>
-            <template #append>
-              <VcsBadge
-                v-if="type === CategoryType.ADDED && addedHasUpdate"
-                class="position-absolute"
-              />
-              <VcsActionButtonList
-                v-else-if="
+              <template
+                v-if="
                   type === CategoryType.CATALOGUES &&
-                  activeTab === CategoryType.CATALOGUES &&
-                  addedCatalogue.length > 1 &&
-                  selectedCatalogue
+                  addedCatalogue.length === 1
                 "
-                :actions="cataloguesActions"
-                overflow-icon="mdi-chevron-down"
-                :overflow-count="0"
-              />
-            </template>
-          </v-tab>
-        </span>
-      </v-tabs>
-    </v-row>
-    <v-divider />
+                #default
+              >
+                {{ addedCatalogue[0].title }}
+              </template>
+              <template #append>
+                <VcsBadge
+                  v-if="type === CategoryType.ADDED && addedHasUpdate"
+                  class="position-absolute"
+                />
+                <VcsActionButtonList
+                  v-else-if="
+                    type === CategoryType.CATALOGUES &&
+                    activeTab === CategoryType.CATALOGUES &&
+                    addedCatalogue.length > 1 &&
+                    selectedCatalogue
+                  "
+                  :actions="cataloguesActions"
+                  overflow-icon="mdi-chevron-down"
+                  :overflow-count="0"
+                />
+              </template>
+            </v-tab>
+          </span>
+        </v-tabs>
+      </v-row>
+      <v-divider />
+    </div>
     <v-container class="pa-0 dl-content">
       <v-tabs-window v-model="activeTab" class="h-100">
         <v-tabs-window-item :value="CategoryType.WEBDATA" class="h-100">
@@ -217,8 +220,23 @@
   });
 </script>
 <style lang="scss" scoped>
+  .dynamic-layer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .dl-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    flex-shrink: 0;
+    background-color: rgb(var(--v-theme-surface));
+  }
+
   .dl-content {
-    height: calc(562px - var(--v-vcs-font-size) * 2 - 6px);
+    flex: 1 1 auto;
+    min-height: 0;
   }
   .vcs-badge {
     top: 4px;

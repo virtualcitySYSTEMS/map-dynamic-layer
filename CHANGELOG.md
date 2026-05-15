@@ -1,3 +1,10 @@
+# v3.0.1
+
+- Fixed a bug where `defaultSorting` config option for catalogue presets would not be taken into account
+- Fixed some styling issues
+- Fixed some translation errors
+- Enhanced parsing of GeoNetwork aggregation keys
+
 # v3.0.0
 
 - Updated @vcmap/core and @vcmap/ui to versions 6.3

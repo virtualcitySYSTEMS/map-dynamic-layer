@@ -302,13 +302,10 @@
   import {
     CataloguesTypes,
     getDefaultSortingOption,
+    getSortOptionKeys,
+    isSortOptionForType,
   } from './catalogues/catalogues.js';
-  import { PiveauSortingOptions } from './catalogues/piveau.js';
-  import { IdraSortingOptions } from './catalogues/idra.js';
-  import {
-    defaultAggregationKeys,
-    GeoNetworkSortingOptions,
-  } from './catalogues/geonetwork.js';
+  import { defaultAggregationKeys } from './catalogues/geonetwork.js';
 
   export default defineComponent({
     name: 'DynamicLayerConfigEditor',
@@ -358,7 +355,7 @@
       const menuCatalogueItem = ref<CataloguePreset>({
         url: '',
         type: CataloguesTypes.PIVEAU,
-        defaultSorting: PiveauSortingOptions.relevance,
+        defaultSorting: getDefaultSortingOption(CataloguesTypes.PIVEAU),
         title: '',
         subtitle: '',
         logo: '',
@@ -367,10 +364,16 @@
       watch(
         () => menuCatalogueItem.value.type,
         (type) => {
-          menuCatalogueItem.value.defaultSorting =
-            getDefaultSortingOption(type);
+          if (
+            !isSortOptionForType(type, menuCatalogueItem.value.defaultSorting)
+          ) {
+            menuCatalogueItem.value.defaultSorting =
+              getDefaultSortingOption(type);
+          }
           if (type === CataloguesTypes.GEONETWORK) {
-            menuCatalogueItem.value.aggregationKeys = defaultAggregationKeys;
+            if (!menuCatalogueItem.value.aggregationKeys) {
+              menuCatalogueItem.value.aggregationKeys = defaultAggregationKeys;
+            }
           } else {
             delete menuCatalogueItem.value.aggregationKeys;
           }
@@ -427,28 +430,10 @@
         getsortOptions: (
           type: CataloguesTypes,
         ): { value: string; title: string }[] => {
-          if (type === CataloguesTypes.PIVEAU) {
-            return Object.entries(PiveauSortingOptions).map(
-              ([title, value]) => ({
-                value,
-                title: `dynamicLayer.catalogues.sortBy.${title}`,
-              }),
-            );
-          } else if (type === CataloguesTypes.IDRA) {
-            return Object.entries(IdraSortingOptions).map(([title, value]) => ({
-              value,
-              title: `dynamicLayer.catalogues.sortBy.${title}`,
-            }));
-          } else if (type === CataloguesTypes.GEONETWORK) {
-            return Object.entries(GeoNetworkSortingOptions).map(
-              ([title, value]) => ({
-                value,
-                title: `dynamicLayer.catalogues.sortBy.${title}`,
-              }),
-            );
-          } else {
-            return [];
-          }
+          return getSortOptionKeys(type).map((sortOption) => ({
+            value: sortOption,
+            title: `dynamicLayer.catalogues.sortBy.${sortOption}`,
+          }));
         },
         titleAction: ref([
           {
@@ -459,7 +444,7 @@
               menuCatalogueItem.value = {
                 url: '',
                 type: CataloguesTypes.PIVEAU,
-                defaultSorting: PiveauSortingOptions.relevance,
+                defaultSorting: getDefaultSortingOption(CataloguesTypes.PIVEAU),
                 title: '',
                 subtitle: '',
                 logo: '',

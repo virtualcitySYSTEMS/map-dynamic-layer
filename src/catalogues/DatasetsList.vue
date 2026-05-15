@@ -1,6 +1,6 @@
 <template>
-  <span class="d-block h-100">
-    <v-row no-gutters>
+  <div class="datasets-list h-100">
+    <v-row no-gutters class="toolbar-row">
       <v-col cols="12" class="d-flex align-center bg-base-lighten-3 px-1">
         <VcsTreeviewSearchbar
           v-model="search"
@@ -51,10 +51,10 @@
         </VcsButton>
       </v-col>
     </v-row>
-    <div v-if="loading" class="h-100 d-flex align-center justify-center">
+    <div v-if="loading" class="list-content d-flex align-center justify-center">
       <v-icon size="2em" color="primary" icon="$vcsProgress" />
     </div>
-    <v-row v-else no-gutters>
+    <div v-else class="list-content">
       <VcsList
         v-model="arraySelected"
         selectable
@@ -62,8 +62,8 @@
         return-object
         :items="datasets"
       />
-    </v-row>
-    <v-row no-gutters class="d-flex justify-center">
+    </div>
+    <v-row no-gutters class="d-flex justify-center pagination-row">
       <VPagination
         v-model="page"
         class="w-100"
@@ -75,7 +75,7 @@
         total-visible="5"
       />
     </v-row>
-  </span>
+  </div>
 </template>
 
 <script lang="ts">
@@ -111,7 +111,11 @@
   import type { DynamicLayerPlugin } from '../index.js';
   import { CategoryType } from '../constants.js';
   import type { CatalogueItem, Dataset } from './catalogues.js';
-  import { fetchCatalogue, sortOptions } from './catalogues.js';
+  import {
+    fetchCatalogue,
+    getSortOptionKeys,
+    isSortOptionForType,
+  } from './catalogues.js';
   import CatalogueFilter from './CataloguesFilter.vue';
 
   /** Maps Datasets to VcsListItems */
@@ -167,10 +171,13 @@
       const searchLoading = ref(false);
 
       const loading = ref(false);
+      const sortOptionsForType = getSortOptionKeys(props.source.type);
       const sortBy = ref(
-        props.source.defaultSorting ?? sortOptions[props.source.type]?.[0],
+        isSortOptionForType(props.source.type, props.source.defaultSorting)
+          ? props.source.defaultSorting
+          : sortOptionsForType[0],
       );
-      const sortByActions = sortOptions[props.source.type]?.map((sort) =>
+      const sortByActions = sortOptionsForType.map((sort) =>
         reactive({
           active: computed(() => sortBy.value === sort),
           name: `dynamicLayer.catalogues.sortBy.${sort}`,
@@ -250,7 +257,7 @@
         if (fetchedData) {
           data.value = fetchedData;
           datasets.value = createDatasetsList(data.value.datasets);
-          arraySelected.value = undefined;
+          arraySelected.value = [];
         }
       }
 
@@ -306,9 +313,27 @@
 </script>
 
 <style lang="scss" scoped>
+  .datasets-list {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .list-content {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .toolbar-row,
+  .pagination-row {
+    flex: 0 0 auto;
+  }
+
   :deep(.v-list) {
     width: 100%;
-    height: 448px;
+    height: 100%;
+    overflow-y: auto;
   }
   :deep(.v-pagination__list) {
     .v-pagination__prev {

@@ -1,17 +1,17 @@
 <template>
-  <v-container class="h-100 pa-0">
+  <v-container class="h-100 pa-0 d-flex flex-column">
     <!-- OVERVIEW -->
     <v-row
       v-if="!selectedCatalogue"
       no-gutters
-      class="w-100 h-100 overflow-y-auto px-1"
+      class="w-100 overflow-y-auto px-1 align-start overview-row"
     >
       <v-col
         v-for="catalogue in added"
         :key="catalogue.url"
-        class="v-col-6 pa-1 d-flex flex-column"
+        class="v-col-6 pa-1 align-self-start"
       >
-        <v-card variant="outlined" rounded class="flex-grow-1">
+        <v-card variant="outlined" rounded class="catalogue-card">
           <template #append>
             <img
               :src="getLogo(catalogue)"
@@ -146,6 +146,15 @@
   });
 </script>
 <style lang="scss" scoped>
+  .overview-row {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-content: flex-start;
+  }
+
+  .catalogue-card {
+    height: 150px;
+  }
   .max-height {
     height: 530px;
   }

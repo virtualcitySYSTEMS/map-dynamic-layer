@@ -160,12 +160,18 @@ function parseGeoNetworkDataset(data: GeoNetworkDataset): Dataset {
   return dataset;
 }
 
+function parseFacetName(name: string): string {
+  if (name.startsWith('th_httpinspireeceuropaeutheme-theme_tree')) {
+    return 'INSPIRE Themes';
+  }
+  return camelCaseToWords(name.replace(/^cl_/, '').replace(/\.key$/, ''));
+}
 function parseGeoNetworkResponse(data: GeoNetworkResponse): CatalogueData {
   const facets = data.aggregations
     ? Object.entries(data.aggregations)
         .map(([key, agg]) => ({
           id: key,
-          title: camelCaseToWords(key),
+          title: parseFacetName(key),
           values: (agg.buckets || []).map((bucket) => ({
             id: bucket.key,
             title: `${bucket.key} (${bucket.doc_count})`,
@@ -201,7 +207,6 @@ export async function fetchGeoNetwork(
   options: CatalogueOptions,
 ): Promise<CatalogueData> {
   const url = enforceCatalogueUrl(options.url, CataloguesTypes.GEONETWORK);
-
   const sortBy =
     GeoNetworkSortingOptions[
       options.sortBy as keyof typeof GeoNetworkSortingOptions

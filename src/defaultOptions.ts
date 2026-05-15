@@ -1,4 +1,7 @@
-import type { CataloguesTypes } from './catalogues/catalogues.js';
+import type {
+  CataloguesTypes,
+  CatalogueSortingKey,
+} from './catalogues/catalogues.js';
 import { CategoryType } from './constants.js';
 import { WebdataTypes } from './webdata/webdataConstants.js';
 
@@ -9,7 +12,7 @@ export type CataloguePreset = {
   logo?: string;
   subtitle?: string;
   description?: string;
-  defaultSorting?: string;
+  defaultSorting?: CatalogueSortingKey;
   filter?: Record<string, string>;
   // used for  geonetwork facets
   aggregationKeys?: string[];

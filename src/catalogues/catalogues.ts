@@ -76,7 +76,7 @@ export type CatalogueItem = {
   logo?: string;
   /** Optional filter to apply when loading the catalogue, defined in the config */
   filter?: Record<string, string>;
-  defaultSorting?: string;
+  defaultSorting?: CatalogueSortingKey;
   data: CatalogueData;
 };
 
@@ -87,12 +87,44 @@ export type Facet = {
   values: Array<{ title: string; id: string }>;
 };
 
-export const sortOptions: Record<CataloguesTypes, Array<string>> = {
-  [CataloguesTypes.PIVEAU]: Object.keys(PiveauSortingOptions),
-  [CataloguesTypes.IDRA]: Object.keys(IdraSortingOptions),
-  [CataloguesTypes.GEONETWORK]: Object.keys(GeoNetworkSortingOptions),
+export type CatalogueSortingKeyByType = {
+  [CataloguesTypes.PIVEAU]: keyof typeof PiveauSortingOptions;
+  [CataloguesTypes.IDRA]: keyof typeof IdraSortingOptions;
+  [CataloguesTypes.GEONETWORK]: keyof typeof GeoNetworkSortingOptions;
+  [CataloguesTypes.NBS]: never;
+};
+
+export type CatalogueSortingKey = CatalogueSortingKeyByType[CataloguesTypes];
+
+function getEnumKeys<T extends Record<string, string>>(
+  value: T,
+): Array<keyof T> {
+  return Object.keys(value) as Array<keyof T>;
+}
+
+export const sortOptions: {
+  [K in CataloguesTypes]: Array<CatalogueSortingKeyByType[K]>;
+} = {
+  [CataloguesTypes.PIVEAU]: getEnumKeys(PiveauSortingOptions),
+  [CataloguesTypes.IDRA]: getEnumKeys(IdraSortingOptions),
+  [CataloguesTypes.GEONETWORK]: getEnumKeys(GeoNetworkSortingOptions),
   [CataloguesTypes.NBS]: [],
 };
+
+export function getSortOptionKeys(
+  type: CataloguesTypes,
+): Array<CatalogueSortingKey> {
+  return [...sortOptions[type]] as Array<CatalogueSortingKey>;
+}
+
+export function isSortOptionForType(
+  type: CataloguesTypes,
+  value: string | undefined,
+): value is CatalogueSortingKey {
+  return (
+    !!value && getSortOptionKeys(type).includes(value as CatalogueSortingKey)
+  );
+}
 
 const catalogueUrlsPath: Record<CataloguesTypes, string> = {
   [CataloguesTypes.PIVEAU]: 'api/hub/search',
@@ -143,17 +175,19 @@ export type CatalogueOptions = {
   aggregationKeys?: string[];
 };
 
-export function getDefaultSortingOption(type: CataloguesTypes): string {
-  switch (type) {
-    case CataloguesTypes.IDRA:
-      return IdraSortingOptions.nameAsc;
-    case CataloguesTypes.PIVEAU:
-      return PiveauSortingOptions.relevance;
-    case CataloguesTypes.GEONETWORK:
-      return GeoNetworkSortingOptions.relevance;
-    default:
-      return '';
-  }
+const defaultSortByType: {
+  [K in CataloguesTypes]: CatalogueSortingKeyByType[K] | undefined;
+} = {
+  [CataloguesTypes.IDRA]: 'nameAsc',
+  [CataloguesTypes.PIVEAU]: 'relevance',
+  [CataloguesTypes.GEONETWORK]: 'relevance',
+  [CataloguesTypes.NBS]: undefined,
+};
+
+export function getDefaultSortingOption<T extends CataloguesTypes>(
+  type: T,
+): CatalogueSortingKeyByType[T] | undefined {
+  return defaultSortByType[type];
 }
 
 function mergeCatalogueOptions(
@@ -164,7 +198,7 @@ function mergeCatalogueOptions(
     url: options.url!,
     itemsPerPage: options.itemsPerPage ?? 14,
     filter: options.filter ?? {},
-    sortBy: options.sortBy ?? getDefaultSortingOption(options.type!),
+    sortBy: options.sortBy ?? getDefaultSortingOption(options.type!) ?? '',
     locale: options.locale ?? 'en',
     page: options.page ?? 0,
     query: options.query ?? '',
