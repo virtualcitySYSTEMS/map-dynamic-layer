@@ -1,5 +1,5 @@
 <template>
-  <v-row no-gutters class="h-100">
+  <v-row no-gutters class="h-100 flex-nowrap">
     <v-slide-x-transition>
       <v-col
         v-show="!mdAndDown || showLeft"
@@ -11,7 +11,7 @@
       </v-col>
     </v-slide-x-transition>
     <v-divider v-if="!mdAndDown || showLeft" vertical />
-    <v-col :cols="!mdAndDown ? 12 - leftCols : 12" class="h-100">
+    <v-col :cols="mdAndDown ? 12 : undefined" class="h-100">
       <v-fade-transition>
         <div
           v-if="mdAndDown && showLeft"

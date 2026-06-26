@@ -1,3 +1,7 @@
+# v3.0.2
+
+- Fixed a bug where right column would disappear when browser's zoom is set to less than 100%
+
 # v3.0.1
 
 - Fixed a bug where `defaultSorting` config option for catalogue presets would not be taken into account
