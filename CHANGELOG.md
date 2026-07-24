@@ -1,4 +1,10 @@
-# v3.1.0
+# v4.0.0
+
+### Breaking changes
+
+- Removed catalogues URL enforcing, see readme for required catalogue endpoints
+
+### Features
 
 - Added support for OGC API Records Collections
 - Enabled HTML rendering in datasets descriptions

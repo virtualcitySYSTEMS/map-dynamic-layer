@@ -8,10 +8,8 @@ import type {
 } from './catalogues.js';
 import {
   camelCaseToWords,
-  CataloguesTypes,
   catalogueTimeout,
   datasetTimeout,
-  enforceCatalogueUrl,
   getDistributionType,
 } from './catalogues.js';
 
@@ -209,7 +207,6 @@ function getAggregations(
 export async function fetchGeoNetwork(
   options: CatalogueOptions,
 ): Promise<CatalogueData> {
-  const url = enforceCatalogueUrl(options.url, CataloguesTypes.GEONETWORK);
   const sortBy =
     GeoNetworkSortingOptions[
       options.sortBy as keyof typeof GeoNetworkSortingOptions
@@ -241,9 +238,7 @@ export async function fetchGeoNetwork(
           ...Object.entries({
             ...options.facets,
             ...(options.filter ?? {}),
-          }).map(([k, v]) => ({
-            term: { [k]: v },
-          })),
+          }).map(([k, v]) => ({ term: { [k]: v } })),
         ],
       },
     },
@@ -259,7 +254,7 @@ export async function fetchGeoNetwork(
     body: JSON.stringify(body),
   };
 
-  return requestJson<GeoNetworkResponse>(url.toString(), init).then((data) => {
+  return requestJson<GeoNetworkResponse>(options.url, init).then((data) => {
     if (!data) {
       throw new Error('GeoNetwork API error: No data received');
     }
@@ -274,7 +269,6 @@ export async function fetchGeoNetworkDataset(
   catalogueUrl: string,
   datasetId: string,
 ): Promise<Dataset> {
-  const url = enforceCatalogueUrl(catalogueUrl, CataloguesTypes.GEONETWORK);
   const body = {
     query: {
       bool: {
@@ -293,7 +287,7 @@ export async function fetchGeoNetworkDataset(
     },
   };
 
-  return requestJson<GeoNetworkResponse>(url.toString(), init).then(
+  return requestJson<GeoNetworkResponse>(catalogueUrl, init).then(
     (data: GeoNetworkResponse) => parseGeoNetworkDataset(data.hits.hits[0]),
   );
 }

@@ -140,48 +140,12 @@ export function isSortOptionForType(
   );
 }
 
-const catalogueUrlsPath: Record<CataloguesTypes, string> = {
-  [CataloguesTypes.PIVEAU]: 'api/hub/search',
-  [CataloguesTypes.IDRA]: 'api/v1/client',
-  [CataloguesTypes.GEONETWORK]: 'geonetwork/srv/api/search/records/_search',
-  [CataloguesTypes.NBS]: 'api',
-  [CataloguesTypes.OGC_API_REC]: 'items',
-};
-
-export function enforceCatalogueUrl(
-  rawUrl: string,
-  type: CataloguesTypes,
-  appendPath?: string,
-): URL {
-  const url = new URL(rawUrl);
-  const requiredPaths = catalogueUrlsPath[type].split('/').filter(Boolean);
-  const fullRequiredPath = requiredPaths.join('/');
-
-  let pathname = url.pathname.replace(/\/$/, '');
-  let matchingSegments = 0;
-  for (let i = requiredPaths.length; i > 0; i--) {
-    const prefix = requiredPaths.slice(0, i).join('/');
-    if (pathname.includes(`/${prefix}`) || pathname === `/${prefix}`) {
-      matchingSegments = i;
-      break;
-    }
+export function enforceCatalogueUrl(rawUrl: string, appendPath?: string): URL {
+  const url = new URL(rawUrl, window.location.origin);
+  if (appendPath?.trim()) {
+    const normalized = appendPath.trim().replace(/^\/+|\/+$/g, '');
+    url.pathname = `${url.pathname.replace(/\/$/, '')}/${normalized}`;
   }
-  if (matchingSegments > 0) {
-    const existingPrefix = requiredPaths.slice(0, matchingSegments).join('/');
-    const idx = pathname.lastIndexOf(`/${existingPrefix}`);
-    if (idx !== -1) {
-      pathname = pathname.slice(0, idx);
-    }
-  }
-
-  const basePath = `${pathname ? `${pathname}/` : '/'}${fullRequiredPath}`;
-  const normalizedBasePath =
-    basePath.replace(/\/{2,}/g, '/').replace(/\/+$/g, '') || '/';
-  const normalizedAppendPath = appendPath?.trim().replace(/^\/+|\/+$/g, '');
-
-  url.pathname = normalizedAppendPath
-    ? `${normalizedBasePath}/${normalizedAppendPath}`
-    : normalizedBasePath;
   return url;
 }
 

@@ -54,7 +54,7 @@
     <div v-if="loading" class="list-content d-flex align-center justify-center">
       <v-icon size="2em" color="primary" icon="$vcsProgress" />
     </div>
-    <div v-else class="list-content">
+    <div v-else-if="datasets.length" class="list-content">
       <VcsList
         v-model="arraySelected"
         selectable
@@ -62,6 +62,9 @@
         return-object
         :items="datasets"
       />
+    </div>
+    <div v-else class="list-content d-flex align-center justify-center">
+      <p class="text-disabled">{{ $t('dynamicLayer.catalogues.noItems') }}</p>
     </div>
     <v-row no-gutters class="d-flex justify-center pagination-row">
       <VPagination

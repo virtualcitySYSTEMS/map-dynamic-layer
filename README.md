@@ -42,6 +42,14 @@ Once added, the layer appears in the Map content tree, and its attributions are 
 
 To be accessible, a catalogue must be predefined in the plugin configuration. An URL and one of the supported catalogue types must be specified. Optionally, a title can be supplied to identify the catalogue, as well as a subtitle which is displayed in the catalogue overview, visible when multiple catalogues are predefined. You can also specify a Markdown description, which will be displayed when a catalogue is opened but no dataset is selected (otherwise, the default description is an explanation of the use of a catalogue within the plugin).
 
+Catalogues endpoints must be configured as follow:
+
+- **GeoNetwork**: Must point to the `_search` endpoint (e.g., `https://geonetwork.example.com/geonetwork/srv/api/search/records/_search`)
+- **Idra**: Must point to `/api/v1/client` (e.g., `https://idra.example.com/Idra/api/v1/client`)
+- **NBS Registry**: Must point to `/api` (e.g., `https://nbs.example.com/api`)
+- **OGC API Records**: Must point to the items of a collection (e.g., `https://ogc.example.com/collections/dataset/items`)
+- **Piveau**: Must point to the instance root (e.g., `https://piveau.example.com`)
+
 ### Usage of a catalogue:
 
 When opened, a catalogue displays the first datasets, sorted by relevance and unfiltered in the list on the left. Above this, a search bar allows you to search for a dataset by name. The sorting icon lets you choose the display order (relevance, asc./desc. name, creation or modification date). The filter icon lets you apply filters based on those available in the catalogue. Below the list, pagination allows you to move between results pages. The right-hand side of the catalogue shows the catalogue description (when configured, otherwise a default description explains how catalogues work).

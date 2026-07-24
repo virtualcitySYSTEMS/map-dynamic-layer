@@ -38,6 +38,7 @@
       "title": "Catalogues",
       "searchAmong": "Search among",
       "datasets": "datasets",
+      "noItems": "No items available",
       "noDescription": "No description available",
       "type": {
         "piveau": "Piveau",

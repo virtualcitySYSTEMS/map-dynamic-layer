@@ -6,7 +6,6 @@ import type {
   Distribution,
 } from './catalogues.js';
 import {
-  CataloguesTypes,
   catalogueTimeout,
   datasetTimeout,
   enforceCatalogueUrl,
@@ -190,11 +189,7 @@ export async function fetchIdra(
     headers: { accept: 'application/json' },
     signal: AbortSignal.timeout(catalogueTimeout),
   };
-  const infoUrl = enforceCatalogueUrl(
-    options.url,
-    CataloguesTypes.IDRA,
-    'cataloguesInfo',
-  );
+  const infoUrl = enforceCatalogueUrl(options.url, 'cataloguesInfo');
   const nodes = await requestJson<IdraCataloguesInfo>(
     infoUrl.toString(),
     init,
@@ -219,11 +214,7 @@ export async function fetchIdra(
     signal: AbortSignal.timeout(catalogueTimeout),
     body: JSON.stringify(postBody),
   };
-  const searchUrl = enforceCatalogueUrl(
-    options.url,
-    CataloguesTypes.IDRA,
-    'search',
-  );
+  const searchUrl = enforceCatalogueUrl(options.url, 'search');
 
   return requestJson<IdraResponse>(searchUrl.toString(), searchOptions).then(
     parseIdraResponse,
@@ -239,11 +230,7 @@ export async function fetchIdraDataset(
     headers: { 'Content-Type': 'application/json' },
     signal: AbortSignal.timeout(datasetTimeout),
   };
-  const datasetUrl = enforceCatalogueUrl(
-    catalogueUrl,
-    CataloguesTypes.IDRA,
-    `dataset/${datasetId}`,
-  );
+  const datasetUrl = enforceCatalogueUrl(catalogueUrl, `dataset/${datasetId}`);
   return requestJson<IdraResponse>(datasetUrl.toString(), init).then((json) =>
     parseIdraDataset(json.results?.[0]),
   );

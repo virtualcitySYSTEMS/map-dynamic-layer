@@ -144,11 +144,7 @@ export async function fetchRegistryDataset(
   catalogueUrl: string,
   nbsId: string,
 ): Promise<Dataset | undefined> {
-  const url = enforceCatalogueUrl(
-    catalogueUrl,
-    CataloguesTypes.NBS,
-    `nbs/${nbsId}`,
-  );
+  const url = enforceCatalogueUrl(catalogueUrl, `nbs/${nbsId}`);
   const init: RequestInit = {
     method: 'GET',
     headers: { accept: 'application/json' },
@@ -189,7 +185,7 @@ export async function fetchRegistry(
     body,
     signal: AbortSignal.timeout(catalogueTimeout),
   };
-  const url = enforceCatalogueUrl(options.url, CataloguesTypes.NBS, 'nbs/map');
+  const url = enforceCatalogueUrl(options.url, 'nbs/map');
 
   return requestJson<RegistryResponse>(url.toString(), init).then(
     async (data) => {
@@ -209,13 +205,9 @@ export async function fetchRegistry(
           (options.page + 1) * options.itemsPerPage,
         );
 
-      const filterUrl = enforceCatalogueUrl(
-        options.url,
-        CataloguesTypes.NBS,
-        'filters',
-      );
+      const filterUrl = enforceCatalogueUrl(options.url, 'filters');
       const filters = await requestJson<RegistryFilter>(
-        filterUrl.toString(),
+        `${filterUrl.toString()}/`,
       ).catch((error: unknown) => {
         getLogger(name).error(
           `Failed to fetch registry filters from ${url}: ${String(error)}`,

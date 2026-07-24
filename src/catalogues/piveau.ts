@@ -6,7 +6,6 @@ import type {
   Distribution,
 } from './catalogues.js';
 import {
-  CataloguesTypes,
   catalogueTimeout,
   datasetTimeout,
   enforceCatalogueUrl,
@@ -153,11 +152,7 @@ function parsePiveauResponse(
 export async function fetchPiveau(
   options: CatalogueOptions,
 ): Promise<CatalogueData> {
-  const url = enforceCatalogueUrl(
-    options.url,
-    CataloguesTypes.PIVEAU,
-    'search',
-  );
+  const url = enforceCatalogueUrl(options.url, 'search');
 
   const init: RequestInit = {
     method: 'GET',
@@ -192,11 +187,7 @@ export async function fetchPiveauDataset(
   datasetId: string,
   locale: string,
 ): Promise<Dataset> {
-  const url = enforceCatalogueUrl(
-    catalogueUrl,
-    CataloguesTypes.PIVEAU,
-    `dataset/${datasetId}`,
-  );
+  const url = enforceCatalogueUrl(catalogueUrl, `dataset/${datasetId}`);
   const init: RequestInit = {
     method: 'GET',
     headers: { accept: 'application/json' },

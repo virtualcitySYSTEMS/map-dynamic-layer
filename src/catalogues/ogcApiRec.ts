@@ -7,7 +7,6 @@ import type {
 } from './catalogues.js';
 import {
   camelCaseToWords,
-  CataloguesTypes,
   catalogueTimeout,
   datasetTimeout,
   enforceCatalogueUrl,
@@ -180,6 +179,14 @@ function parseOgcApiRecFacets(facetsData?: OgcApiRecFacets): Array<Facet> {
     .filter((facet) => facet.values.length > 0);
 }
 
+function resolveLinkHref(href: string, baseUrl: URL): string | undefined {
+  try {
+    return new URL(href, baseUrl).toString();
+  } catch {
+    return undefined;
+  }
+}
+
 /**
  * Fetches OGC API Records items from the given collection URL.
  * The `options.url` should point to the collection endpoint; `/items` is appended automatically.
@@ -192,7 +199,7 @@ export async function fetchOgcApiRec(
     headers: { accept: 'application/json' },
     signal: AbortSignal.timeout(catalogueTimeout),
   };
-  const url = enforceCatalogueUrl(options.url, CataloguesTypes.OGC_API_REC);
+  const url = enforceCatalogueUrl(options.url);
 
   if (options.query && !url.searchParams.has('q')) {
     url.searchParams.append('q', options.query);
@@ -212,10 +219,17 @@ export async function fetchOgcApiRec(
   return requestJson<OgcApiRecResponse>(url.toString(), init).then((data) => {
     const paginationLinks = (data.links ?? [])
       .filter((link) => link.rel === 'prev' || link.rel === 'next')
-      .map((link) => ({
-        href: link.href,
-        rel: link.rel === 'next' ? 'next' : ('previous' as 'previous' | 'next'),
-      }));
+      .map((link) => {
+        const href = resolveLinkHref(link.href, url);
+        if (!href) {
+          return undefined;
+        }
+        const rel: 'previous' | 'next' =
+          link.rel === 'next' ? 'next' : 'previous';
+
+        return { href, rel };
+      })
+      .filter((link) => !!link);
     return {
       count: data.numberMatched ?? data.features?.length ?? 0,
       datasets: data.features?.map(parseDataset) ?? [],
@@ -238,10 +252,6 @@ export async function fetchOgcApiRecDataset(
     headers: { accept: 'application/json' },
     signal: AbortSignal.timeout(datasetTimeout),
   };
-  const url = enforceCatalogueUrl(
-    rawUrl,
-    CataloguesTypes.OGC_API_REC,
-    datasetId,
-  );
+  const url = enforceCatalogueUrl(rawUrl, datasetId);
   return requestJson<OgcApiRecFeature>(url.toString(), init).then(parseDataset);
 }

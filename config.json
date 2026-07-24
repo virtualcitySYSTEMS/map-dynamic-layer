@@ -11,11 +11,11 @@
       {
         "type": "nbsRegistry",
         "title": "NBS Registry",
-        "url": "https://nbs.modapto.atc.gr/"
+        "url": "https://nbs.modapto.atc.gr/api"
       },
       {
         "type": "piveau",
-        "url": "https://data.europa.eu/",
+        "url": "https://data.europa.eu/api/hub/search",
         "title": "Data Europa",
         "filter": { "filter": "dataset" },
         "subtitle": "The official portal for European data",
@@ -23,12 +23,19 @@
       },
       {
         "type": "piveau",
-        "url": "https://open.bydata.de/",
+        "url": "https://open.bydata.de/api/hub/search",
         "title": "Data Bayern",
         "filter": { "filter": "dataset" },
         "subtitle": "Hier finden Datenbegeisterte freie Datensätze und Unterstützung, um noch mehr Daten zu teilen. Damit schaffen wir gemeinsam – Verwaltung, Unternehmen, aber auch Wissenschaft und Zivilgesellschaft – Mehrwert für uns alle.",
         "description": "# Offene Daten aus Bayern\nHier finden Datenbegeisterte freie Datensätze und Unterstützung, um noch mehr Daten zu teilen. Damit schaffen wir gemeinsam – Verwaltung, Unternehmen, aber auch Wissenschaft und Zivilgesellschaft – Mehrwert für uns alle.\n",
         "logo": "https://open.bydata.de/static/bydata_logo_wordmark_medium.svg"
+      },
+      {
+        "type": "piveau",
+        "url": "https://piveau-search.zwilling.speyer.de/",
+        "title": "Stadt Speyer",
+        "filter": { "filter": "dataset" },
+        "logo": "https://www.speyer.de/de/rathaus/verwaltung/corporate-design/faq/speyer-logo-rgb.jpg?cid=3o4a.fncp&resize=3b030d:262x"
       },
       {
         "title": "IDRA",
@@ -38,7 +45,7 @@
       {
         "type": "geonetwork",
         "title": "Geoportal Baden-Württemberg",
-        "url": "https://metadaten.geoportal-bw.de/",
+        "url": "https://metadaten.geoportal-bw.de/geonetwork/srv/api/search/records/_search",
         "logo": "https://metadaten.geoportal-bw.de/geonetwork/images/logos/425d3281-ee29-4fb7-9a1b-efc6fe7a0d2e.png",
         "defaultSorting": "nameAsc",
         "aggregationKeys": [
@@ -63,13 +70,13 @@
       {
         "type": "geonetwork",
         "title": "International Council for the Exploration of the Sea (ICES)",
-        "url": "https://gis.ices.dk/",
+        "url": "https://gis.ices.dk/geonetwork/srv/api/search/records/_search",
         "logo": "https://data.europa.eu/sites/default/files/news/ICES%20logo.png"
       },
       {
         "type": "geonetwork",
         "title": "Geodatenkatalog der Stadt Freiburg im Breisgau",
-        "url": "https://geodaten.freiburg.de",
+        "url": "https://geodaten.freiburg.de/geonetwork/srv/api/search/records/_search",
         "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTaWLYfckAAlY8vQ46T2qsI3GtHxRR89u_JGg&s",
         "aggregationKeys": [
           "th_httpinspireeceuropaeutheme-theme_tree.key",
@@ -94,35 +101,35 @@
       {
         "type": "geonetwork",
         "title": "Zentrum für Umweltforschung (UFZ)",
-        "url": "https://web.app.ufz.de",
+        "url": "https://web.app.ufz.de/geonetwork/srv/api/search/records/_search",
         "logo": "https://www.ufz.de/export/data/2/291173_UFZ_Logo_RGB_EN.png"
       },
       {
         "type": "ogcApiRecords",
         "title": "GDI.HRO: service collection",
-        "url": "https://geo.sv.rostock.de/metadata/collections/service",
+        "url": "https://geo.sv.rostock.de/metadata/collections/service/items",
         "logo": "https://geo.sv.rostock.de/download/graphiken/hro.png"
       },
       {
         "type": "ogcApiRecords",
         "title": "Meteorological Service of Canada Global Discovery Catalogue (GDC)",
-        "url": "https://wis2-gdc.weather.gc.ca/collections/wis2-discovery-metadata"
+        "url": "https://wis2-gdc.weather.gc.ca/collections/wis2-discovery-metadata/items"
       },
       {
         "type": "ogcApiRecords",
         "title": "Digital Atlas of Australia",
-        "url": "https://digital.atlas.gov.au/api/search/v1/collections/dataset/"
+        "url": "https://digital.atlas.gov.au/api/search/v1/collections/dataset/items/"
       },
       {
         "type": "ogcApiRecords",
         "title": "Utah SGID",
-        "url": "https://opendata.gis.utah.gov/api/search/v1/collections/dataset/"
+        "url": "https://opendata.gis.utah.gov/api/search/v1/collections/dataset/items"
       },
       {
         "type": "ogcApiRecords",
         "title": "pycsw Geospatial Catalogue gisdata demo",
         "fetchFacets": true,
-        "url": "https://demo.pycsw.org/gisdata/collections/metadata:main/"
+        "url": "https://demo.pycsw.org/gisdata/collections/metadata:main/items/"
       }
     ]
   }
