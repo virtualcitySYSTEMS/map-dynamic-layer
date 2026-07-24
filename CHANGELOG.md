@@ -1,3 +1,8 @@
+# v3.1.0
+
+- Added support for OGC API Records Collections
+- Enabled HTML rendering in datasets descriptions
+
 # v3.0.2
 
 - Fixed a bug where right column would disappear when browser's zoom is set to less than 100%

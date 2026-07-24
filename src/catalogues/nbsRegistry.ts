@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import { GeoJSONLayer, VectorStyleItem, Viewpoint } from '@vcmap/core';
+import {
+  requestJson,
+  GeoJSONLayer,
+  VectorStyleItem,
+  Viewpoint,
+} from '@vcmap/core';
 import {
   LayerContentTreeItem,
   NotificationType,
@@ -15,6 +20,8 @@ import { name } from '../../package.json';
 import {
   camelCaseToWords,
   CataloguesTypes,
+  catalogueTimeout,
+  datasetTimeout,
   enforceCatalogueUrl,
   getCatalogueIcon,
 } from './catalogues.js';
@@ -137,17 +144,20 @@ export async function fetchRegistryDataset(
   catalogueUrl: string,
   nbsId: string,
 ): Promise<Dataset | undefined> {
-  const url = enforceCatalogueUrl(catalogueUrl, CataloguesTypes.NBS);
-  url.pathname = `${url.pathname}/nbs/${nbsId}`;
+  const url = enforceCatalogueUrl(
+    catalogueUrl,
+    CataloguesTypes.NBS,
+    `nbs/${nbsId}`,
+  );
   const init: RequestInit = {
     method: 'GET',
     headers: { accept: 'application/json' },
-    signal: AbortSignal.timeout(5000),
+    signal: AbortSignal.timeout(datasetTimeout),
   };
 
-  return fetch(url, init)
-    .then((res) => res.json())
-    .then((data: RegistryDataset) => parseRegistryDataset(data));
+  return requestJson<RegistryDataset>(url.toString(), init).then(
+    parseRegistryDataset,
+  );
 }
 
 /**
@@ -177,14 +187,12 @@ export async function fetchRegistry(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body,
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(catalogueTimeout),
   };
-  const url = enforceCatalogueUrl(options.url, CataloguesTypes.NBS);
-  url.pathname = `${url.pathname}/nbs/map`;
+  const url = enforceCatalogueUrl(options.url, CataloguesTypes.NBS, 'nbs/map');
 
-  return fetch(url, init)
-    .then((res) => res.json())
-    .then(async (data: RegistryResponse) => {
+  return requestJson<RegistryResponse>(url.toString(), init).then(
+    async (data) => {
       if (!data.success) {
         throw new Error(data.message || 'Failed to fetch registry data');
       }
@@ -201,16 +209,19 @@ export async function fetchRegistry(
           (options.page + 1) * options.itemsPerPage,
         );
 
-      const filterUrl = enforceCatalogueUrl(options.url, CataloguesTypes.NBS);
-      filterUrl.pathname = `${filterUrl.pathname}/filters/`;
-      const filters = await fetch(filterUrl)
-        .then((res) => res.json() as Promise<RegistryFilter>)
-        .catch((error: unknown) => {
-          getLogger(name).error(
-            `Failed to fetch registry filters from ${url}: ${String(error)}`,
-          );
-          return null;
-        });
+      const filterUrl = enforceCatalogueUrl(
+        options.url,
+        CataloguesTypes.NBS,
+        'filters',
+      );
+      const filters = await requestJson<RegistryFilter>(
+        filterUrl.toString(),
+      ).catch((error: unknown) => {
+        getLogger(name).error(
+          `Failed to fetch registry filters from ${url}: ${String(error)}`,
+        );
+        return null;
+      });
 
       const facets = [];
       if (!filters?.success) {
@@ -231,7 +242,8 @@ export async function fetchRegistry(
       }
 
       return { count: data.data.length, datasets, facets };
-    });
+    },
+  );
 }
 
 const nbsRegistryLayerId = 'nbsRegistryLayer';

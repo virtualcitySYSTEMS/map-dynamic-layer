@@ -193,8 +193,8 @@
                 </v-row>
                 <v-row
                   v-if="
-                    menuCatalogueItem.type === 'geonetwork' ||
-                    menuCatalogueItem.type === 'piveau'
+                    menuCatalogueItem.type === CataloguesTypes.GEONETWORK ||
+                    menuCatalogueItem.type === CataloguesTypes.PIVEAU
                   "
                   no-gutters
                 >
@@ -218,7 +218,7 @@
                   </v-col>
                 </v-row>
                 <v-row
-                  v-if="menuCatalogueItem.type === 'geonetwork'"
+                  v-if="menuCatalogueItem.type === CataloguesTypes.GEONETWORK"
                   no-gutters
                 >
                   <v-col>
@@ -237,6 +237,17 @@
                       @update:model-value="
                         (v: string[]) => (menuCatalogueItem.aggregationKeys = v)
                       "
+                    />
+                  </v-col>
+                </v-row>
+                <v-row
+                  v-if="menuCatalogueItem.type === CataloguesTypes.OGC_API_REC"
+                  no-gutters
+                >
+                  <v-col>
+                    <VcsCheckbox
+                      v-model="menuCatalogueItem.fetchFacets"
+                      label="dynamicLayer.config.fetchFacets"
                     />
                   </v-col>
                 </v-row>
@@ -289,6 +300,7 @@
     VcsFormButton,
     VcsTextArea,
     VcsChipArrayInput,
+    VcsCheckbox,
   } from '@vcmap/ui';
   import type { PropType, Ref } from 'vue';
   import { computed, defineComponent, reactive, ref, toRaw, watch } from 'vue';
@@ -318,6 +330,7 @@
       VRow,
       AbstractConfigEditor,
       VcsChipArrayInput,
+      VcsCheckbox,
       VcsFormButton,
       VcsFormSection,
       VcsLabel,
@@ -377,6 +390,10 @@
           } else {
             delete menuCatalogueItem.value.aggregationKeys;
           }
+
+          if (type !== CataloguesTypes.OGC_API_REC) {
+            delete menuCatalogueItem.value.fetchFacets;
+          }
         },
       );
       const dialog = ref(false);
@@ -416,6 +433,7 @@
 
       return {
         CategoryType,
+        CataloguesTypes,
         localConfig,
         tabs,
         webdataTypes,
@@ -425,7 +443,9 @@
         dialog,
         defaultAggregationKeys,
         supportsSorting: computed(
-          () => menuCatalogueItem.value.type !== CataloguesTypes.NBS,
+          () =>
+            menuCatalogueItem.value.type !== CataloguesTypes.NBS &&
+            menuCatalogueItem.value.type !== CataloguesTypes.OGC_API_REC,
         ),
         getsortOptions: (
           type: CataloguesTypes,
@@ -449,6 +469,7 @@
                 subtitle: '',
                 logo: '',
                 description: '',
+                fetchFacets: false,
               };
             },
           },

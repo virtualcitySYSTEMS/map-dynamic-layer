@@ -1,3 +1,4 @@
+import { requestJson } from '@vcmap/core';
 import { v4 as uuid } from 'uuid';
 import type {
   CatalogueData,
@@ -8,6 +9,8 @@ import type {
 import {
   camelCaseToWords,
   CataloguesTypes,
+  catalogueTimeout,
+  datasetTimeout,
   enforceCatalogueUrl,
   getDistributionType,
 } from './catalogues.js';
@@ -248,7 +251,7 @@ export async function fetchGeoNetwork(
 
   const init: RequestInit = {
     method: 'POST',
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(catalogueTimeout),
     headers: {
       'Content-Type': 'application/json',
       Accept: 'application/json',
@@ -256,16 +259,12 @@ export async function fetchGeoNetwork(
     body: JSON.stringify(body),
   };
 
-  return fetch(url, init)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(
-          `GeoNetwork API error: ${res.status} ${res.statusText}`,
-        );
-      }
-      return res.json();
-    })
-    .then((data: GeoNetworkResponse) => parseGeoNetworkResponse(data));
+  return requestJson<GeoNetworkResponse>(url.toString(), init).then((data) => {
+    if (!data) {
+      throw new Error('GeoNetwork API error: No data received');
+    }
+    return parseGeoNetworkResponse(data);
+  });
 }
 
 /**
@@ -286,7 +285,7 @@ export async function fetchGeoNetworkDataset(
 
   const init: RequestInit = {
     method: 'POST',
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(datasetTimeout),
     body: JSON.stringify(body),
     headers: {
       'Content-Type': 'application/json',
@@ -294,16 +293,7 @@ export async function fetchGeoNetworkDataset(
     },
   };
 
-  return fetch(url, init)
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(
-          `GeoNetwork API error: ${res.status} ${res.statusText}`,
-        );
-      }
-      return res.json();
-    })
-    .then((data: GeoNetworkResponse) =>
-      parseGeoNetworkDataset(data.hits.hits[0]),
-    );
+  return requestJson<GeoNetworkResponse>(url.toString(), init).then(
+    (data: GeoNetworkResponse) => parseGeoNetworkDataset(data.hits.hits[0]),
+  );
 }

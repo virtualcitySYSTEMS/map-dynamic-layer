@@ -19,6 +19,7 @@ Currently supported sources are:
   - [GeoNetwork](https://geonetwork-opensource.org/)
   - [Idra](https://github.com/OPSILab/Idra/)
   - [NBS Registry](https://nbs.dashboard.urbreath.modapto.atc.gr/home)
+  - [OGC API Records Collections](https://www.ogc.org/standards/ogcapi-records/)
   - [Piveau](https://www.piveau.de/)
 
 ## Web Data
@@ -46,6 +47,30 @@ To be accessible, a catalogue must be predefined in the plugin configuration. An
 When opened, a catalogue displays the first datasets, sorted by relevance and unfiltered in the list on the left. Above this, a search bar allows you to search for a dataset by name. The sorting icon lets you choose the display order (relevance, asc./desc. name, creation or modification date). The filter icon lets you apply filters based on those available in the catalogue. Below the list, pagination allows you to move between results pages. The right-hand side of the catalogue shows the catalogue description (when configured, otherwise a default description explains how catalogues work).
 
 When a dataset is selected, its details are displayed instead of the catalogue description. At the bottom of the presentation is a list of its distributions. Each one can be expanded to see its details, and when it is compatible with the VC Map, a button offers to add it to the map. Compatible datasets are those presented in the list of Web Data sources.
+
+### Entry Endpoint in App State
+
+The plugin supports an optional `entry` object in its state. This can be used to open a predefined catalogue dataset directly and expand a specific distribution.
+
+This entry endpoint is supported for the following catalogue types: Idra, GeoNetwork, OGC API Records and Piveau.
+
+The `entry` object has the following properties:
+
+- `url`: URL of a configured catalogue preset
+- `dataset`: identifier of the dataset to open
+- `distrib`: identifier of the distribution to expand
+
+Example:
+
+```json
+{
+  "entry": {
+    "url": "https://data.europa.eu/",
+    "dataset": "my-dataset-id",
+    "distrib": "my-distribution-id"
+  }
+}
+```
 
 ## Edit the parameters of an added layer:
 
@@ -80,14 +105,14 @@ The 'Added layers' section of the plugin shows all layers added to the Map, sort
 
 These properties are common ot the four supported catalogue types.
 
-| Property    | Type     | Default                                 | Description                                                                     | Allowed values                                |
-| ----------- | -------- | --------------------------------------- | ------------------------------------------------------------------------------- | --------------------------------------------- |
-| type        | `string` | `required`                              | The type of the catalogue.                                                      | 'idra', 'geonetwork', 'nbsRegistry', 'piveau' |
-| url         | `string` | `required`                              | The URL of the catalogue.                                                       | _any_                                         |
-| title       | `string` | Domain name                             | The title of the catalogue.                                                     | _any_                                         |
-| logo        | `string` | Catalogue type logo                     | The logo of the catalogue, as a base64 image.                                   | _any_                                         |
-| subtitle    | `string` | Catalogue type                          | The catalogue subtitle, shown in catalogues overview.                           | _any_                                         |
-| description | `string` | An explanation of how the catalogs work | The catalogue description. Is rendered as MarkDown when no dataset is selected. | _any_                                         |
+| Property    | Type     | Default                                 | Description                                                                     | Allowed values                                                 |
+| ----------- | -------- | --------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| type        | `string` | `required`                              | The type of the catalogue.                                                      | 'idra', 'geonetwork', 'nbsRegistry', 'ogcApiRecords', 'piveau' |
+| url         | `string` | `required`                              | The URL of the catalogue.                                                       | _any_                                                          |
+| title       | `string` | Domain name                             | The title of the catalogue.                                                     | _any_                                                          |
+| logo        | `string` | Catalogue type logo                     | The logo of the catalogue, as a base64 image.                                   | _any_                                                          |
+| subtitle    | `string` | Catalogue type                          | The catalogue subtitle, shown in catalogues overview.                           | _any_                                                          |
+| description | `string` | An explanation of how the catalogs work | The catalogue description. Is rendered as MarkDown when no dataset is selected. | _any_                                                          |
 
 #### Type-dependant properties
 
@@ -100,6 +125,7 @@ Additionally to the common properties, the following catalogue type dependant pr
 | defaultSorting  | Piveau             | `string`                | The default sorting of datasets                                                                                     | **'relevance'**, 'nameAsc', 'nameDesc', 'lastModified', 'lastCreated'                       |
 | aggregationKeys | GeoNetwork         | `Array<string>`         | The aggregation kes to be fetched, used for filtering                                                               | `['resourceType','inspireTheme','cl_topic','format','organisationNameObject','groupOwner']` |
 | filter          | GeoNetwork, Piveau | `Record<string,string>` | An object used to prefilter the catalogues entries. Filter defined in the config will not be overridable in the UI. | _any_                                                                                       |
+| fetchFacets     | OGC API Records    | `boolean`               | Whether to fetch facets from the catalogue API.                                                                     | **false**, true                                                                             |
 
 A config entry could for example look like:
 

@@ -16,6 +16,8 @@ export type CataloguePreset = {
   filter?: Record<string, string>;
   // used for  geonetwork facets
   aggregationKeys?: string[];
+  // used for ogcApiRecords facets
+  fetchFacets?: boolean;
 };
 
 export type DynamicLayerConfig = {

@@ -1,6 +1,5 @@
 <script setup lang="ts">
   import type { PropType } from 'vue';
-  import { defineProps } from 'vue';
   import { VRow } from 'vuetify/components';
   import { VcsFormSection } from '@vcmap/ui';
   import type { DataItem } from './webdataConstants.js';

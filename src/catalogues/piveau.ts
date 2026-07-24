@@ -1,3 +1,4 @@
+import { requestJson } from '@vcmap/core';
 import type {
   CatalogueData,
   CatalogueOptions,
@@ -6,6 +7,8 @@ import type {
 } from './catalogues.js';
 import {
   CataloguesTypes,
+  catalogueTimeout,
+  datasetTimeout,
   enforceCatalogueUrl,
   getDistributionType,
   getLocalizedValue,
@@ -150,13 +153,16 @@ function parsePiveauResponse(
 export async function fetchPiveau(
   options: CatalogueOptions,
 ): Promise<CatalogueData> {
-  const url = enforceCatalogueUrl(options.url, CataloguesTypes.PIVEAU);
-  url.pathname = `${url.pathname}/search`;
+  const url = enforceCatalogueUrl(
+    options.url,
+    CataloguesTypes.PIVEAU,
+    'search',
+  );
 
   const init: RequestInit = {
     method: 'GET',
     headers: { accept: 'application/json' },
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(catalogueTimeout),
   };
   const sort = Object.keys(PiveauSortingOptions).includes(options.sortBy)
     ? PiveauSortingOptions[
@@ -173,9 +179,9 @@ export async function fetchPiveau(
   url.searchParams.append('page', options.page.toString());
   url.searchParams.append('limit', options.itemsPerPage.toString());
   url.searchParams.append('facets', JSON.stringify(options.facets));
-  return fetch(url, init)
-    .then((res) => res.json())
-    .then((data: PiveauResponse) => parsePiveauResponse(data, options.locale));
+  return requestJson<PiveauResponse>(url.toString(), init).then((data) =>
+    parsePiveauResponse(data, options.locale),
+  );
 }
 
 /**
@@ -186,17 +192,18 @@ export async function fetchPiveauDataset(
   datasetId: string,
   locale: string,
 ): Promise<Dataset> {
-  const url = enforceCatalogueUrl(catalogueUrl, CataloguesTypes.PIVEAU);
-  url.pathname = `${url.pathname}/dataset/${datasetId}`;
+  const url = enforceCatalogueUrl(
+    catalogueUrl,
+    CataloguesTypes.PIVEAU,
+    `dataset/${datasetId}`,
+  );
   const init: RequestInit = {
     method: 'GET',
     headers: { accept: 'application/json' },
-    signal: AbortSignal.timeout(5000),
+    signal: AbortSignal.timeout(datasetTimeout),
   };
 
-  return fetch(url, init)
-    .then((res) => res.json())
-    .then((data: { result: PiveauDataset }) =>
-      parsePiveauDataset(data.result, locale),
-    );
+  return requestJson<{ result: PiveauDataset }>(url.toString(), init).then(
+    (data) => parsePiveauDataset(data.result, locale),
+  );
 }

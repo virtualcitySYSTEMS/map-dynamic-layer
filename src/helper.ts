@@ -76,6 +76,7 @@ export function preloadCatalogues(
       filter: c.filter,
       sortBy: c.defaultSorting,
       aggregationKeys: c.aggregationKeys,
+      fetchFacets: c.fetchFacets,
     }).then((data) => {
       if (data) {
         const catalogue: CatalogueItem = {

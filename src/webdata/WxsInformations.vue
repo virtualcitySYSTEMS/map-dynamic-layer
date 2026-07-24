@@ -18,7 +18,8 @@
       }}</VcsLabel>
     </v-row>
     <v-row no-gutters class="px-2">
-      {{ item.description }}
+      <!-- eslint-disable-next-line vue/no-v-html -->
+      <div v-html="parseAndSanitizeMarkdown(item.description)"></div>
     </v-row>
   </span>
 
@@ -103,7 +104,7 @@
 <script lang="ts">
   import type { PropType } from 'vue';
   import { defineComponent } from 'vue';
-  import { VcsExtent, VcsLabel } from '@vcmap/ui';
+  import { parseAndSanitizeMarkdown, VcsExtent, VcsLabel } from '@vcmap/ui';
   import { VChip, VRow } from 'vuetify/components';
   import { CategoryType } from '../constants.js';
   import type { DataItem, WxsWebdataTypes } from './webdataConstants.js';
@@ -126,6 +127,7 @@
     },
     setup() {
       return {
+        parseAndSanitizeMarkdown,
         CategoryType,
         checkAnyProperty(obj: object | undefined): boolean {
           if (!obj) {

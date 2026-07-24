@@ -43,7 +43,8 @@
         "piveau": "Piveau",
         "geonetwork": "GeoNetwork",
         "idra": "Idra",
-        "nbsRegistry": "NBS Registry"
+        "nbsRegistry": "NBS Registry",
+        "ogcApiRecords": "OGC API Records Collection"
       },
       "noDistributionAvailable": "Für diesen Datensatz ist keine Bereitstellung verfügbar.",
       "chooseLayersToAdd": "Unter dieser Adresse sind mehrere Ebenen verfügbar. Bitte fügen Sie die gewünschten Ebenen hinzu, indem Sie auf + klicken.",
@@ -126,6 +127,8 @@
       "overview": "Übersicht",
       "remove": "Entfernen",
       "rename": "Umbenennen",
+      "previous": "Zurück",
+      "next": "Weiter",
       "toggleDatasetList": "Datensatzliste ein-/ausblenden",
       "zoomToExtent": "Zoom zur Ausdehnung",
       "filter": {
@@ -172,7 +175,8 @@
       "subtitle": "Untertitel",
       "logo": "Logo",
       "filter": "Filter",
-      "aggregationKeys": "Aggregationsschlüssel"
+      "aggregationKeys": "Aggregationsschlüssel",
+      "fetchFacets": "Facetten laden"
     }
   }
 }

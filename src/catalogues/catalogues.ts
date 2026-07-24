@@ -24,6 +24,7 @@ import {
 import { fetchIdra, fetchIdraDataset, IdraSortingOptions } from './idra.js';
 import { name } from '../../package.json';
 import { fetchRegistry } from './nbsRegistry.js';
+import { fetchOgcApiRec, fetchOgcApiRecDataset } from './ogcApiRec.js';
 
 /** The support Catalogues types. */
 export enum CataloguesTypes {
@@ -31,6 +32,7 @@ export enum CataloguesTypes {
   NBS = 'nbsRegistry',
   PIVEAU = 'piveau',
   GEONETWORK = 'geonetwork',
+  OGC_API_REC = 'ogcApiRecords',
 }
 
 export type Distribution = {
@@ -59,10 +61,16 @@ export type Dataset = {
   keywords?: string[];
   distributions?: Distribution[];
 };
+export type Link = {
+  href: string;
+  rel: 'previous' | 'next';
+};
+
 export type CatalogueData = {
   count: number;
   facets: Array<Facet>;
   datasets: Array<Dataset>;
+  links?: Array<Link>;
 };
 
 export type CatalogueItem = {
@@ -77,6 +85,7 @@ export type CatalogueItem = {
   /** Optional filter to apply when loading the catalogue, defined in the config */
   filter?: Record<string, string>;
   defaultSorting?: CatalogueSortingKey;
+  fetchFacets?: boolean;
   data: CatalogueData;
 };
 
@@ -92,9 +101,13 @@ export type CatalogueSortingKeyByType = {
   [CataloguesTypes.IDRA]: keyof typeof IdraSortingOptions;
   [CataloguesTypes.GEONETWORK]: keyof typeof GeoNetworkSortingOptions;
   [CataloguesTypes.NBS]: never;
+  [CataloguesTypes.OGC_API_REC]: never;
 };
 
 export type CatalogueSortingKey = CatalogueSortingKeyByType[CataloguesTypes];
+
+export const catalogueTimeout = 15000;
+export const datasetTimeout = 5000;
 
 function getEnumKeys<T extends Record<string, string>>(
   value: T,
@@ -109,6 +122,7 @@ export const sortOptions: {
   [CataloguesTypes.IDRA]: getEnumKeys(IdraSortingOptions),
   [CataloguesTypes.GEONETWORK]: getEnumKeys(GeoNetworkSortingOptions),
   [CataloguesTypes.NBS]: [],
+  [CataloguesTypes.OGC_API_REC]: [],
 };
 
 export function getSortOptionKeys(
@@ -131,11 +145,13 @@ const catalogueUrlsPath: Record<CataloguesTypes, string> = {
   [CataloguesTypes.IDRA]: 'api/v1/client',
   [CataloguesTypes.GEONETWORK]: 'geonetwork/srv/api/search/records/_search',
   [CataloguesTypes.NBS]: 'api',
+  [CataloguesTypes.OGC_API_REC]: 'items',
 };
 
 export function enforceCatalogueUrl(
   rawUrl: string,
   type: CataloguesTypes,
+  appendPath?: string,
 ): URL {
   const url = new URL(rawUrl);
   const requiredPaths = catalogueUrlsPath[type].split('/').filter(Boolean);
@@ -158,7 +174,14 @@ export function enforceCatalogueUrl(
     }
   }
 
-  url.pathname = `${pathname ? `${pathname}/` : '/'}${fullRequiredPath}`;
+  const basePath = `${pathname ? `${pathname}/` : '/'}${fullRequiredPath}`;
+  const normalizedBasePath =
+    basePath.replace(/\/{2,}/g, '/').replace(/\/+$/g, '') || '/';
+  const normalizedAppendPath = appendPath?.trim().replace(/^\/+|\/+$/g, '');
+
+  url.pathname = normalizedAppendPath
+    ? `${normalizedBasePath}/${normalizedAppendPath}`
+    : normalizedBasePath;
   return url;
 }
 
@@ -173,6 +196,7 @@ export type CatalogueOptions = {
   query: string;
   facets: Record<string, string>;
   aggregationKeys?: string[];
+  fetchFacets?: boolean;
 };
 
 const defaultSortByType: {
@@ -182,6 +206,7 @@ const defaultSortByType: {
   [CataloguesTypes.PIVEAU]: 'relevance',
   [CataloguesTypes.GEONETWORK]: 'relevance',
   [CataloguesTypes.NBS]: undefined,
+  [CataloguesTypes.OGC_API_REC]: undefined,
 };
 
 export function getDefaultSortingOption<T extends CataloguesTypes>(
@@ -204,6 +229,7 @@ function mergeCatalogueOptions(
     query: options.query ?? '',
     facets: options.facets ?? {},
     aggregationKeys: options.aggregationKeys,
+    fetchFacets: options.fetchFacets ?? false,
   };
 }
 
@@ -221,6 +247,8 @@ export async function fetchCatalogue(
       return fetchRegistry(options);
     case CataloguesTypes.PIVEAU:
       return fetchPiveau(options);
+    case CataloguesTypes.OGC_API_REC:
+      return fetchOgcApiRec(options);
     default:
       throw new Error('Unsupported catalogue type');
   }
@@ -245,9 +273,10 @@ export function fetchDataset(
       return fetchGeoNetworkDataset(url, datasetId);
     case CataloguesTypes.IDRA:
       return fetchIdraDataset(url, datasetId);
-    case CataloguesTypes.PIVEAU: {
+    case CataloguesTypes.PIVEAU:
       return fetchPiveauDataset(url, datasetId, locale);
-    }
+    case CataloguesTypes.OGC_API_REC:
+      return fetchOgcApiRecDataset(url, datasetId);
     default:
       throw new Error('Unsupported catalogue type');
   }

@@ -96,6 +96,33 @@
         "title": "Zentrum für Umweltforschung (UFZ)",
         "url": "https://web.app.ufz.de",
         "logo": "https://www.ufz.de/export/data/2/291173_UFZ_Logo_RGB_EN.png"
+      },
+      {
+        "type": "ogcApiRecords",
+        "title": "GDI.HRO: service collection",
+        "url": "https://geo.sv.rostock.de/metadata/collections/service",
+        "logo": "https://geo.sv.rostock.de/download/graphiken/hro.png"
+      },
+      {
+        "type": "ogcApiRecords",
+        "title": "Meteorological Service of Canada Global Discovery Catalogue (GDC)",
+        "url": "https://wis2-gdc.weather.gc.ca/collections/wis2-discovery-metadata"
+      },
+      {
+        "type": "ogcApiRecords",
+        "title": "Digital Atlas of Australia",
+        "url": "https://digital.atlas.gov.au/api/search/v1/collections/dataset/"
+      },
+      {
+        "type": "ogcApiRecords",
+        "title": "Utah SGID",
+        "url": "https://opendata.gis.utah.gov/api/search/v1/collections/dataset/"
+      },
+      {
+        "type": "ogcApiRecords",
+        "title": "pycsw Geospatial Catalogue gisdata demo",
+        "fetchFacets": true,
+        "url": "https://demo.pycsw.org/gisdata/collections/metadata:main/"
       }
     ]
   }

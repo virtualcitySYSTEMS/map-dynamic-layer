@@ -65,6 +65,7 @@
     </div>
     <v-row no-gutters class="d-flex justify-center pagination-row">
       <VPagination
+        v-if="source.type !== CataloguesTypes.OGC_API_REC"
         v-model="page"
         class="w-100"
         prev-icon="mdi-chevron-left"
@@ -74,6 +75,26 @@
         :length="Math.ceil(data.count / itemsPerPage)"
         total-visible="5"
       />
+      <div v-else class="w-100 d-flex justify-space-between px-1">
+        <VcsToolButton
+          :disabled="!data.links?.find((l) => l.rel === 'previous')"
+          icon="mdi-chevron-left"
+          @click="
+            updateOgcPage(data.links?.find((l) => l.rel === 'previous')?.href)
+          "
+        >
+          {{ $t('dynamicLayer.actions.previous') }}
+        </VcsToolButton>
+        <VcsToolButton
+          :disabled="!data.links?.find((l) => l.rel === 'next')"
+          @click="
+            updateOgcPage(data.links?.find((l) => l.rel === 'next')?.href)
+          "
+        >
+          {{ $t('dynamicLayer.actions.next') }}
+          <v-icon icon="mdi-chevron-right" class="ml-2" size="small" />
+        </VcsToolButton>
+      </div>
     </v-row>
   </div>
 </template>
@@ -106,12 +127,14 @@
     type VcsListItem,
     type VcsUiApp,
     useProxiedComplexModel,
+    VcsToolButton,
   } from '@vcmap/ui';
   import { name } from '../../package.json';
   import type { DynamicLayerPlugin } from '../index.js';
   import { CategoryType } from '../constants.js';
   import type { CatalogueItem, Dataset } from './catalogues.js';
   import {
+    CataloguesTypes,
     fetchCatalogue,
     getSortOptionKeys,
     isSortOptionForType,
@@ -139,6 +162,7 @@
       VcsActionButtonList,
       VcsList,
       VcsButton,
+      VcsToolButton,
       VcsTreeviewSearchbar,
       CatalogueFilter,
     },
@@ -218,6 +242,8 @@
       async function updateResults(
         keepCurrentPage = false,
         previousPage = 1,
+        // used for OGC API Records, where the next/previous page is determined by the links in the response
+        overrideUrl?: string,
       ): Promise<void> {
         loading.value = true;
         if (!keepCurrentPage) {
@@ -232,7 +258,7 @@
         );
         const fetchedData = await fetchCatalogue({
           type: props.source.type,
-          url: props.source.url,
+          url: overrideUrl ?? props.source.url,
           locale,
           facets,
           itemsPerPage,
@@ -241,6 +267,7 @@
           page: page.value - 1,
           query: search.value,
           aggregationKeys: catalogueConfig?.aggregationKeys,
+          fetchFacets: catalogueConfig?.fetchFacets,
         })
           .catch(() => {
             silentUpdatePage.value = true;
@@ -273,6 +300,7 @@
       });
 
       return {
+        CataloguesTypes,
         locale: app.locale,
         data,
         page,
@@ -291,6 +319,11 @@
             ({ id }) => !Object.keys(props.source.filter ?? {}).includes(id),
           ),
         ),
+        async updateOgcPage(link?: string): Promise<void> {
+          if (link) {
+            await updateResults(true, page.value, link);
+          }
+        },
         async updateFilters(
           filterId: string,
           selection: Array<string>,

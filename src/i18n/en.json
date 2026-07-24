@@ -43,7 +43,8 @@
         "piveau": "Piveau",
         "geonetwork": "GeoNetwork",
         "idra": "Idra",
-        "nbsRegistry": "NBS Registry"
+        "nbsRegistry": "NBS Registry",
+        "ogcApiRecords": "OGC API Records Collection"
       },
       "nbsAddedToMap": "The selected NBS has been added to the map.",
       "noDistributionAvailable": "No distribution available for this dataset.",
@@ -128,6 +129,8 @@
       "remove": "Remove",
       "toggleDatasetList": "Toggle dataset list",
       "zoomToExtent": "Zoom to extent",
+      "previous": "Previous",
+      "next": "Next",
       "filter": {
         "showAddedOnly": "Show only added layers",
         "reset": "Reset filter"
@@ -172,7 +175,8 @@
       "subtitle": "Subtitle",
       "logo": "Logo",
       "filter": "Filter",
-      "aggregationKeys": "Aggregation keys"
+      "aggregationKeys": "Aggregation keys",
+      "fetchFacets": "Fetch facets"
     }
   }
 }

@@ -114,12 +114,13 @@
 
         <span v-if="dataset.description" class="w-100 pb-1">
           <v-row no-gutters>
-            <VcsLabel html-for="description" class="font-weight-bold">{{
-              $t('dynamicLayer.common.description')
-            }}</VcsLabel>
+            <VcsLabel html-for="description" class="font-weight-bold">
+              {{ $t('dynamicLayer.common.description') }}
+            </VcsLabel>
           </v-row>
           <v-row no-gutters class="px-2">
-            {{ dataset.description }}
+            <!-- eslint-disable-next-line vue/no-v-html -->
+            <div v-html="parseAndSanitizeMarkdown(dataset.description)"></div>
           </v-row>
         </span>
       </VcsFormSection>
@@ -158,6 +159,7 @@
   import { defineComponent, inject, ref } from 'vue';
   import { VChip, VRow } from 'vuetify/components';
   import {
+    parseAndSanitizeMarkdown,
     VcsDataTable,
     VcsFormSection,
     VcsLabel,
@@ -169,7 +171,7 @@
   import { name } from '../../package.json';
 
   function getFormat(item: Distribution): string {
-    if (item.format) {
+    if (item.format || item.format === '') {
       return item.format;
     }
     if (item.downloadUrl) {
@@ -265,6 +267,7 @@
         props.dataset.keywords && props.dataset.keywords.length <= 4,
       );
       return {
+        parseAndSanitizeMarkdown,
         expandedDistributionIds,
         locale,
         distributions,
