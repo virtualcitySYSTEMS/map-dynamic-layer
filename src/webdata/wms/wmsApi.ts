@@ -227,7 +227,8 @@ export function itemToWmsLayer(
     zIndex,
   });
   if (item.queryable) {
-    layer.featureProvider = new WMSFeatureProvider(item.name, {
+    layer.featureProvider = new WMSFeatureProvider({
+      name: item.name,
       url: item.url,
       parameters,
       extent: item.extent,
