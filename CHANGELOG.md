@@ -1,3 +1,10 @@
+# v4.0.1
+
+- Improved GeoNetwork and Piveau distributions' type detection
+- Fixed a bug where parsing WMS and WMTS styles without legendURL would fail
+- Fixed a bug where relative catalogues URLs would not be correctly loaded
+- Fixed empty default catalogue title when the catalogue host has no subdomain
+
 # v4.0.0
 
 ### Breaking changes

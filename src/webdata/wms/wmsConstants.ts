@@ -27,8 +27,8 @@ export type WmsItem = {
   styles?: Array<{
     value: string;
     title: string;
-    abstract: string;
-    legendUrl: string;
+    abstract?: string;
+    legendUrl?: string;
   }>;
   formats?: Array<string>;
   featureInfoResponseType?: string;
@@ -36,10 +36,10 @@ export type WmsItem = {
 
 /** Raw layer style capabilities obtained from a WMS webserver. */
 type WmsStyle = {
-  Abstract: string;
+  Abstract?: string;
   Name: string;
   Title: string;
-  LegendURL: Array<{ OnlineResource: string }>;
+  LegendURL?: Array<{ OnlineResource: string }>;
 };
 
 /** Raw layer capabilities obtained from a WMS webserver. */

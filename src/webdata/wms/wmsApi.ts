@@ -106,14 +106,12 @@ function parseWmsSource(
         ),
         description: findValue('Abstract') as string,
         keywordList: findValue('KeywordList') as string[],
-        styles: layer.Style?.map((s) => {
-          return {
-            value: s.Name,
-            title: s.Title,
-            abstract: s.Abstract,
-            legendUrl: s.LegendURL[0].OnlineResource,
-          };
-        }),
+        styles: layer.Style?.map((s) => ({
+          value: s.Name,
+          title: s.Title,
+          abstract: s.Abstract,
+          legendUrl: s.LegendURL?.[0]?.OnlineResource,
+        })),
         children: isChildDifferent(layer)
           ? layer.Layer?.map((l) => getNestedLayers(l))
           : [],

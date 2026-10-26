@@ -21,7 +21,7 @@ export type WmtsItem = {
     name: string;
     title: string;
     isDefault: boolean;
-    legendUrl: string;
+    legendUrl?: string;
   }>;
   formats?: Array<string>;
 };
@@ -29,7 +29,7 @@ export type WmtsItem = {
 /** Raw layer style capabilities obtained from a WMTS webserver. */
 type WmtsStyle = {
   Identifier: string;
-  LegendURL: Array<{ format: string; href: string }>;
+  LegendURL?: Array<{ format: string; href: string }>;
   Title: string;
   isDefault: boolean;
 };

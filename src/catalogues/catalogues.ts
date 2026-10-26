@@ -112,7 +112,7 @@ export const datasetTimeout = 5000;
 function getEnumKeys<T extends Record<string, string>>(
   value: T,
 ): Array<keyof T> {
-  return Object.keys(value) as Array<keyof T>;
+  return Object.keys(value);
 }
 
 export const sortOptions: {
@@ -365,7 +365,7 @@ export function getDistributionType(
   if (checkType('wmts')) {
     return WebdataTypes.WMTS;
   }
-  if (checkType('geojson')) {
+  if (checkType('geojson') || checkType('geo+json')) {
     return WebdataTypes.GEOJSON;
   }
   if (checkType('czml')) {

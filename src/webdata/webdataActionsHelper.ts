@@ -238,7 +238,7 @@ export function getTreeviewDefaultActions(
     actions.push(
       reactive({
         name: ActionsNames.AddAll,
-        disabled: !!(getNonAddedChildrenLength(item) === 0),
+        disabled: getNonAddedChildrenLength(item) === 0,
         callback: addAllNestedLayersFromItem.bind(null, app, item),
       }),
     );
@@ -263,13 +263,13 @@ export function getTreeviewDefaultActions(
   const parent = getParentItem(app, item);
   if (parent) {
     const addAllAction = parent.actions.find(
-      (a) => a.name === String(ActionsNames.AddAll),
+      (a) => a.name === ActionsNames.AddAll.toString(),
     );
     if (addAllAction) {
-      addAllAction.disabled = !!(getNonAddedChildrenLength(parent) === 0);
+      addAllAction.disabled = getNonAddedChildrenLength(parent) === 0;
     }
     const removeAllAction = parent.actions.find(
-      (a) => a.name === String(ActionsNames.RemoveAll),
+      (a) => a.name === ActionsNames.RemoveAll.toString(),
     );
     if (removeAllAction) {
       removeAllAction.disabled = !parent.children.some((c) => c.isAddedToMap);

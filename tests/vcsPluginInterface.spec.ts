@@ -10,7 +10,10 @@ function sleep(ms = 0): Promise<void> {
   });
 }
 
-type TestPluginInstance = VcsPlugin<Record<never, never>, Record<never, never>>;
+type TestPluginInstance = VcsPlugin<
+  Record<string, never>,
+  Record<string, never>
+>;
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore

@@ -135,6 +135,7 @@
         const toChoose = await addDistributionToMap(
           app,
           item.accessUrl!,
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-enum-assignment
           item.type as WebdataTypes,
           item.id,
           item.title,

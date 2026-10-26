@@ -135,7 +135,7 @@
                 name: 'dynamicLayer.added.actions.selectAll',
                 callback: (): void => {
                   localSelected.value = localItems.value.filter(
-                    (item) => item.group === String(type),
+                    (item) => item.group === type.toString(),
                   );
                 },
               }),

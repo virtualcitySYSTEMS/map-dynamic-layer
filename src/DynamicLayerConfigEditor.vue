@@ -313,6 +313,7 @@
   import { getAvailableTypes } from './helper.js';
   import {
     CataloguesTypes,
+    enforceCatalogueUrl,
     getDefaultSortingOption,
     getSortOptionKeys,
     isSortOptionForType,
@@ -476,7 +477,11 @@
         ]),
         isUrl(value: string): boolean | string {
           try {
-            return Boolean(new URL(value));
+            return Boolean(
+              value.startsWith('/')
+                ? enforceCatalogueUrl(value)
+                : new URL(value),
+            );
           } catch (e) {
             return 'dynamicLayer.errors.invalidUrl';
           }

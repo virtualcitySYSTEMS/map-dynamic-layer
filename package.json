@@ -67,7 +67,7 @@
   "dependencies": {
     "@vcsuite/check": "^3.2.2",
     "@vcsuite/logger": "^1.0.1",
-    "deepmerge-ts": "^7.1.5",
+    "deepmerge-ts": "^8.0.2",
     "ol-wfs-capabilities": "^2.0.0",
     "uuid": "^11.1.0"
   },

@@ -8,6 +8,7 @@ import type { CataloguePreset } from './defaultOptions.js';
 import type { CatalogueItem } from './catalogues/catalogues.js';
 import {
   CataloguesTypes,
+  enforceCatalogueUrl,
   fetchCatalogue,
   fetchDataset,
 } from './catalogues/catalogues.js';
@@ -65,8 +66,8 @@ export function preloadCatalogues(
    * @returns The loaded catalogue.
    */
   function load(c: CataloguePreset): Promise<CatalogueItem | undefined> {
-    const { host } = new URL(c.url);
-    const title = c.title ?? host.split('.').slice(1).join('.');
+    const { host } = enforceCatalogueUrl(c.url);
+    const title = c.title ?? (host.split('.').slice(1).join('.') || host);
     const catalogueItem = { ...c, title };
 
     return fetchCatalogue({
@@ -96,7 +97,7 @@ export function preloadCatalogues(
   if (entryCatalogue) {
     load(entryCatalogue)
       .then((catalogue) => {
-        plugin.catalogues.selected.value = catalogue as CatalogueItem;
+        plugin.catalogues.selected.value = catalogue;
         const { type, url } = catalogue as CatalogueItem;
         fetchDataset(type, url, entry!.dataset, app.locale)
           .then((result) => {

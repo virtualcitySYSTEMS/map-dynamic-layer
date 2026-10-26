@@ -76,7 +76,7 @@ function parseWmtsCapabilities(
         return {
           name: s.Identifier,
           title: s.Title,
-          legendUrl: s.LegendURL?.[0].href,
+          legendUrl: s.LegendURL?.[0]?.href,
           isDefault: s.isDefault,
         };
       }),

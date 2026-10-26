@@ -100,6 +100,7 @@
   import Catalogues from './catalogues/CataloguesWindow.vue';
   import AddedData from './AddedData.vue';
   import { name } from '../package.json';
+  import { enforceCatalogueUrl } from './catalogues/catalogues.js';
 
   export const dynamicLayerId = 'dynamic_layer_window_id';
 
@@ -146,7 +147,7 @@
         ...addedCatalogue.value.map((c) => {
           return reactive({
             name: c.title,
-            title: `${c.data.count.toLocaleString(app.locale)} ${app.vueI18n.t('dynamicLayer.catalogues.datasets')} @ ${new URL(c.url).host}`,
+            title: `${c.data.count.toLocaleString(app.locale)} ${app.vueI18n.t('dynamicLayer.catalogues.datasets')} @ ${enforceCatalogueUrl(c.url).host}`,
             active: computed(() => selectedCatalogue.value?.url === c.url),
             callback: (): void => {
               selectedCatalogue.value = c;

@@ -21,8 +21,8 @@ type GeonetworkDistribution = {
   mimeType: string;
   urlObject: { default: string };
   hash: string;
+  protocol?: string;
   /*
-  protocol: string;
   function: string;
   applicationProfile: string;
   idx: number;
@@ -107,7 +107,10 @@ export enum GeoNetworkSortingOptions {
 function parseGeoNetworkDistribution(
   data: GeonetworkDistribution,
 ): Distribution {
-  const type = getDistributionType(data.urlObject.default);
+  const type =
+    getDistributionType(data.protocol) ??
+    getDistributionType(data.mimeType) ??
+    getDistributionType(data.urlObject.default);
 
   return {
     id: data.hash || uuid(),

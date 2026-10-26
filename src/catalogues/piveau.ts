@@ -87,11 +87,14 @@ function parsePiveauDistribution(
   data: PiveauDistribution,
   locale: string,
 ): Distribution {
+  const type =
+    getDistributionType(data.format?.label) ??
+    getDistributionType(data.format?.id);
   const distribution: Distribution = {
     id: data.id,
     title: getLocalizedValue(data.title, locale) || data.id,
     description: getLocalizedValue(data.description, locale),
-    type: getDistributionType(data.format?.label ?? data.format?.id),
+    type,
     ...(data.issued && { created: new Date(data.issued).toDateString() }),
     ...(data.modified && { modified: new Date(data.modified).toDateString() }),
     ...(data.format && { format: data.format.label ?? data.format.id }),
